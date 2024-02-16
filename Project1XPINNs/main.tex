@@ -1,0 +1,88 @@
+
+\documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{revtex4-1}
+
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{wrapfig}
+\usepackage{array} 
+\usepackage{listings}
+\usepackage[para,online,flushleft]{threeparttablex}
+\usepackage{booktabs,dcolumn}
+\usepackage{color}
+ 
+
+\usepackage{textpos}
+\usepackage{booktabs}
+\usepackage{multirow,bigdelim}
+\usepackage{float}
+
+\usepackage{upgreek} %upalpha in Saxena2021 Reference
+
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\hypersetup{breaklinks=true,colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=magenta,urlcolor=blue}
+
+\usepackage{lipsum}
+
+
+\usepackage{xcolor}
+%\newcommand{\contrib}[1]{\textcolor{red}{#1}}
+%\newcommand{\comment}[1]{\textcolor{blue}{#1}}
+
+%\newcommand{\WN}[1]{{\color{red} #1}}
+
+\makeatletter
+\def\@bibdataout@aps{%
+\immediate\write\@bibdataout{%
+@CONTROL{%
+apsrev41Control%
+\longbibliography@sw{%
+    ,author="08",editor="1",pages="1",title="0",year="1"%
+    }{%
+    ,author="08",editor="1",pages="1",title="",year="1"%
+    }%
+  }%
+}%
+\if@filesw \immediate \write \@auxout {\string \citation {apsrev41Control}}\fi
+}
+\makeatother
+
+
+%\usepackage[left]{lineno}
+%\linenumbers
+
+
+\begin{document}
+% \pagenumbering{gobble} 
+
+\title{Extended Physics-Informed Neural Networks}
+
+\author{Femtehjell, Winsvold, Steeneveldt, Johannessen and Hu}
+\affiliation{Department of Mathematics, University of Oslo, N-0316 Oslo, Norway}
+
+
+\begin{abstract}
+    \lipsum[1-1] 
+\end{abstract}
+
+\maketitle
+
+\tableofcontents
+
+
+\section{Introduction} 
+\lipsum[2-4] \cite[p.~69--420]{Goodfellow2016}
+
+\section{Physics-Informed Neural Networks in broad strokes}
+\lipsum[5-6]
+
+\section{Domain Decomposition}
+\lipsum[6-7]
+
+\bibliography{Project1XPINNs/References} % add  references to this file
+
+\section{Appendix}
+The code is available at \url{https://github.com/augustfe/FYS5429}
+
+\end{document}
