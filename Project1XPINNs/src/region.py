@@ -10,7 +10,10 @@ class Region:
     ):
         self.constraint_file = Path(constraint_file)
         self.areas: list[Area] = []
+        self.interfaces: list[Interface] = []
         self.limits = []
+        self.num_boundaries: int = 0
+        self.num_interfaces: int = 0
 
         if use_seed:
             np.random.seed(seed)
@@ -61,12 +64,39 @@ class Region:
             for i in range(N):
                 # Number of boundaries per region
                 m = int(infile.readline())
+                self.num_boundaries += 1 if m != 0 else 0
                 for _ in range(m):
                     # Start and end points of boundary
                     values = list(map(float, infile.readline().split()))
-                    start = np.asarray(values[:n_args])
-                    end = np.asarray(values[n_args:])
+                    start, end = self.two_points(values, n_args)
                     self.areas[i].add_boundary(start, end)
+
+            # Number of interfaces
+            N = int(infile.readline())
+            for i in range(N):
+                a, b = map(int, infile.readline().split())
+                values = list(map(float, infile.readline().split()))
+                start, end = self.two_points(values, n_args)
+                new_Interface = Interface(
+                    self.areas[a], self.areas[b], start, end, a, b
+                )
+                self.interfaces.append(new_Interface)
+                self.num_interfaces += 1
+
+    def two_points(self, values: list, n_args: int) -> tuple[np.ndarray]:
+        """Convert list of values into corresponding start and end point
+
+        Args:
+            values (list): List of variable values
+            n_args (int): Number of arguments
+
+        Returns:
+            tuple[list,list]: start, end
+        """
+        start = np.asarray(values[n_args:])
+        end = np.asarray(values[:n_args])
+
+        return start, end
 
     def add_points(self, X: np.ndarray):
         """Add array of points to the corresponding areas
@@ -100,6 +130,38 @@ class Region:
         self.add_points(X)
 
         return X
+
+    def test_boundary_and_interface(self, N: int = 200) -> np.ndarray:
+        points_per = N // (self.num_boundaries + self.num_interfaces)
+        total_points = []
+        for area in self.areas:
+            bounds = area.boundary_constraints
+            if not len(bounds):
+                continue
+
+            bounds = np.asarray(bounds)
+            num_b = len(bounds)
+            idx = np.random.choice(num_b, points_per)
+            scales = np.random.uniform(0, 1, size=(points_per, 2))
+
+            chosen_points = bounds[idx]
+            starts = chosen_points[:, 0, :]
+            ends = chosen_points[:, 1, :]
+
+            print(starts)
+            print(ends)
+            print(ends - starts)
+            print(starts * scales)
+
+            new_points = starts + (ends - starts) * scales
+            area.bound_points = new_points
+            total_points.append(new_points)
+
+        for interface in self.interfaces:
+            new_points = interface.add_points(points_per)
+            total_points.append(new_points)
+
+        return total_points
 
     def test_boundary_points(self, N: int = 200) -> np.ndarray:
         placed = 0
@@ -141,9 +203,18 @@ class Region:
             plt.scatter(
                 bounds[:, 0],
                 bounds[:, 1],
-                marker="x",
-                alpha=0.4,
+                s=2.5,
+                # marker="x",
+                # alpha=0.4,
                 label=f"Boundary {i + 1}",
+            )
+
+        for interface in self.interfaces:
+            plt.scatter(
+                interface.points[:, 0],
+                interface.points[:, 1],
+                s=2.5,
+                label=f"Interface {interface.idx_left}{interface.idx_right}",
             )
         plt.legend()
         plt.show()
@@ -279,3 +350,31 @@ class Area:
             self.points_to_df()
 
         self.df_points.to_csv(file)
+
+
+class Interface:
+    def __init__(
+        self,
+        left_area: Area,
+        right_area: Area,
+        start_point: np.ndarray,
+        end_point: np.ndarray,
+        idx_left: int,
+        idx_right: int,
+    ):
+        self.left: Area = left_area
+        self.right: Area = right_area
+        self.start = start_point
+        self.end = end_point
+        self.points = None
+        self.idx_left = idx_left
+        self.idx_right = idx_right
+
+    def add_points(self, n: int = 100) -> np.ndarray:
+        """Interpolates n points between endpoints
+
+        Args:
+            n (int): Number of points to place
+        """
+        self.points = np.linspace(self.start, self.end, n)
+        return self.points
