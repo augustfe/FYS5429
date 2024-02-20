@@ -32,6 +32,14 @@ def neural_network(activation):
     
     return NN_model
 
+def XPINNs(activations):
+  pinns = []
+  for activ in activations:
+    pinns.append(neural_network(activ))
+  
+  return pinns
+
+# Each PINN has interface loss
 
           
 if __name__ == '__main__':
