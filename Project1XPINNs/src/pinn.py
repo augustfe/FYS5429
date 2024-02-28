@@ -92,5 +92,57 @@ def setup_network(input_size: int, width: int, depth: int, output_size: int):
     print(test_output)
 
 
+@jit
+def update_P(P: np.ndarray, cost_grad: np.ndarray, lmb: float) -> np.ndarray:
+    """Convenience function for updating the parameters of the network.
+
+    Args:
+        P (np.ndarray): Parameters of the network
+        cost_grad (np.ndarray): Gradient of the cost, w.r.t. the parameters
+        lmb (float): Learning rate for gradient descent
+
+    Returns:
+        np.ndarray: Updated parameters for the layer.
+    """
+    return lax.sub(P, lax.mul(lmb, cost_grad))
+
+
+def back_prop(
+    x: np.ndarray,
+    P: list[np.ndarray],
+    num_iter: int,
+    lmb: float,
+    activation_func: Callable[[float], float],
+    cost_function: Callable,
+) -> list[np.ndarray]:
+    """Solve the chosen PDE using a physics-informed neural network.
+
+    Args:
+        x (np.ndarray): Input x values
+        t (np.ndarray): Input t values
+        num_neurons (list[int]): Size of each hidden layer
+        num_iter (int): Number of iterations for gradient descent
+        lmb (float): Learning rate for gradient descent
+        activation_func (Callable[[float], float]): Activation function for the hidden layers
+
+    Returns:
+        list[np.ndarray]: Optimized parameters for the network.
+    """
+
+    print("Initial cost: ", cost_function(P, x, activation_func))
+
+    cost_function_grad = jit(grad(cost_function, 0))
+
+    for _ in tqdm(range(num_iter)):
+        cost_grad = cost_function_grad(P, x, activation_func)
+
+        for layer in range(3):
+            P[layer] = update_P(P[layer], cost_grad[layer], lmb)
+
+    print(f"Final cost: {cost_function(P, x, activation_func)}")
+
+    return P
+
+
 if __name__ == "__main__":
     setup_network(2, 50, 4, 1)
