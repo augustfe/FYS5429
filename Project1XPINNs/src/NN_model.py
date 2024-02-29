@@ -1,30 +1,33 @@
 import jax.numpy as jnp
-from jax import random, jit, vmap
+from jax import random, vmap
 import numpy as np
+from type_util import Activator, Array, Shape, Params, ArrayLike, Callable
 
 
-### ---------------------------- Jax documentation ----------------------------
+# ---------------------------- Jax documentation ----------------------------
 # A helper function to randomly initialize weights and biases
 # for a dense neural network layer
-def random_layer_params(m, n, key, scale=1e-2):
+def random_layer_params(
+    m: int, n: int, key: int, scale: float = 1e-2
+) -> tuple[Array, Array]:
     w_key, b_key = random.split(key)
     return scale * random.normal(w_key, (n, m)), scale * random.normal(b_key, (n,))
 
 
 # Initialize all layers for a fully-connected neural network with sizes "sizes"
-def init_network_params(sizes, key):
+def init_network_params(sizes: Shape, key: int) -> Params:
     keys = random.split(key, len(sizes))
     return [
         random_layer_params(m, n, k) for m, n, k in zip(sizes[:-1], sizes[1:], keys)
     ]
 
 
-### ----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 
-def neural_network(activation):
+def neural_network(activation: Activator) -> Callable[[Params, ArrayLike], Array]:
 
-    def NN_model(params, input):
+    def NN_model(params: Params, input: ArrayLike) -> Array:
         z = input
 
         for w, b in params[:-1]:
@@ -38,7 +41,7 @@ def neural_network(activation):
     return NN_model
 
 
-def XPINNs(activations):
+def XPINNs(activations: list[Activator]):
     pinns = []
     for activ in activations:
         pinns.append(neural_network(activ))
