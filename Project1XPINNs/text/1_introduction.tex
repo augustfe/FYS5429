@@ -1,0 +1,32 @@
+The resolution of Partial Differential Equations (PDEs) underpins % pun intended
+many scientific and engineering challenges, notably exemplified by the Navier-Stokes equations governing fluid dynamics. Traditional numerical methods struggle with the computational burdens of modeling many different physical phenomena within a unified framework. In response, Physics-Informed Neural Networks (PINNs) have emerged as a promising alternative, leveraging deep learning to approximate solutions of PDEs while inherently encoding physical laws.
+
+A typical Neural Network is trained through measuring how well the model is able to predict a set of labeled data, often through the Mean Squared Error (MSE). The cost function underpinning the network can then simply be
+\begin{equation}
+    \mathcal{C}(\boldsymbol{\theta}; \boldsymbol{x}, \boldsymbol{y}) = \lVert \boldsymbol{y} - \mathcal{N}_{\boldsymbol{\theta}}(\boldsymbol{x}) \rVert_2,
+\end{equation}
+where $\boldsymbol{y}$ are the target values, $\mathcal{N}_\theta(\cdot)$ is the realization of the network given the parameters $\boldsymbol{\theta}$ and the corresponding input values $\boldsymbol{x}$. 
+A PINN integrates physical constraints directly into its loss function, effectively guiding the neural network to respect the underlying physics of the problem. This can often remove the requirement of having labeled data for training, which can be a computationally expensive aspect of solving PDEs in and of itself.
+
+\begin{comment}
+PINNs build upon this idea, extending the cost function in order to integrate the physical laws governing the problem.
+Consider a PDE on the domain $\Omega$ of the form
+\begin{equation*}
+    \mathcal{L}u^* = f \in \Omega \quad \text{and} \quad u^* = g \in \partial \Omega,
+\end{equation*}
+where $\mathcal{L}$ is the differential operator characterizing the PDE, $u^*$ is the unknown solution, and $\delta \Omega$ is the boundary. We approximate $u^*$ with $\mathcal{N}_\theta$ by appending
+\begin{equation*}
+    
+\end{equation*}
+\end{comment}
+
+
+However, solving the Navier-Stokes equation with PINNs is costly. So to mitigate our use of computational resources we propose to use the extension of PINNs (XPINNs) through domain decomposition, as presented in \textcite{Jagtap2020ExtendedPN}, which segments the problem domain into simpler, more homogeneous subdomains. This approach enhances computational efficiency and model accuracy, but also introduces challenges in maintaining continuity and physical fidelity across interfaces.
+
+By decomposing the computational domain, we aim to reduce the overall complexity, enabling more efficient training and higher-fidelity solutions, especially in scenarios with multifaceted fluid behaviors. We introduce *methodologies* [TODO: hvilke?] to seamlessly integrate subdomain solutions, ensuring consistent flow properties and energy conservation across interfaces. 
+
+To tackle the computational cost of computing the Navier-Stokes equations and the domain decomposition approach, numerical differentiation is one of the most important components. We therefore incorporate FLAX, a versatile and efficient neural network library for JAX, to enhance our numerical differentiation processes. By leveraging FLAX's capabilities, we aim to streamline the computation of gradients and higher-order derivatives required for the physics-informed loss functions. This is useful for the Navier-Stokes equations, where efficient computation of fluid dynamics variables—such as velocity gradients and pressure differentials is important. FLAX's integration into our XPINNs framework allows for efficient backpropagation, enabling the automatic adjustment of neural network weights to minimize the loss function that encodes both the PDE constraints and the boundary conditions. Another benefit is FLAX's compatibility with JAX's just-in-time compilation and automatic vectorization features which will significantly enhance the computational efficiency of our models, particularly in the parallel processing of multiple subdomains.
+
+Our contributions are twofold: First, we develop a robust framework for XPINNs tailored to the Navier-Stokes equations, incorporating domain decomposition techniques to capture the dynamics of fluid flow. Second, we implement novel loss function configurations and inter-network communication protocols to ensure physical accuracy and computational efficiency across decomposed domains.
+
+Through this work, we [TODO: hype]
