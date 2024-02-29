@@ -77,9 +77,7 @@ class Region:
                 a, b = map(int, infile.readline().split())
                 values = list(map(float, infile.readline().split()))
                 start, end = self.two_points(values, n_args)
-                new_Interface = Interface(
-                    self.areas[a], self.areas[b], start, end, a, b
-                )
+                new_Interface = Interface(start, end, [a, b])
                 self.interfaces.append(new_Interface)
                 self.num_interfaces += 1
 
@@ -112,6 +110,8 @@ class Region:
                 break
             else:
                 print(f"WARNING: Can't place ({point}) in an area!!")
+        for area in self.areas:
+            area.points = np.asarray(area.points).tolist()
 
     def test_points(self, N: int = 2000) -> np.ndarray:
         """Populate region with test-points.
@@ -148,12 +148,7 @@ class Region:
             starts = chosen_points[:, 0, :]
             ends = chosen_points[:, 1, :]
 
-            print(starts)
-            print(ends)
-            print(ends - starts)
-            print(starts * scales)
-
-            new_points = starts + (ends - starts) * scales
+            new_points = (starts + (ends - starts) * scales).tolist()
             area.bound_points = new_points
             total_points.append(new_points)
 
@@ -354,21 +349,12 @@ class Area:
 
 class Interface:
     def __init__(
-        self,
-        left_area: Area,
-        right_area: Area,
-        start_point: np.ndarray,
-        end_point: np.ndarray,
-        idx_left: int,
-        idx_right: int,
+        self, start_point: np.ndarray, end_point: np.ndarray, indices: list[int]
     ):
-        self.left: Area = left_area
-        self.right: Area = right_area
         self.start = start_point
         self.end = end_point
         self.points = None
-        self.idx_left = idx_left
-        self.idx_right = idx_right
+        self.indices = indices
 
     def add_points(self, n: int = 100) -> np.ndarray:
         """Interpolates n points between endpoints

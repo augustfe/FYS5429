@@ -38,7 +38,7 @@ class PINN:
         activation: Activator,
         rand_key: int = 0,
     ) -> None:
-        """Physcics-Informed Neural Network
+        """Physics-Informed Neural Network
 
         Args:
             interior (np.ndarray): Points internal to the subdomain
@@ -167,7 +167,7 @@ class XPINN:
 
         key = random.PRNGKey(seed)
 
-        print(data)
+        # print(data)
 
         self.PINNs: list[PINN] = []
         self.Interfaces: list[Interface] = []
@@ -188,8 +188,8 @@ class XPINN:
             new_Interface = Interface(indices, points)
             self.Interfaces.append(new_Interface)
 
-        print(self.PINNs)
-        print(self.Interfaces)
+        # print(self.PINNs)
+        # print(self.Interfaces)
 
     def transfer_interface_values(self):
         raise NotImplementedError
