@@ -1,5 +1,5 @@
 import jax.numpy as np
-from jax import jit, random, grad  # noqa
+from jax import jit, random, grad, vmap  # noqa
 import json
 from pathlib import Path
 from dataclasses import dataclass
@@ -15,6 +15,7 @@ from type_util import (
     Updates,
 )
 import optax
+from functools import partial  # noqa
 
 
 @dataclass
@@ -48,17 +49,28 @@ class PINN:
         self.boundary = boundary
         self.rand_key = rand_key
         self.model = neural_network(activation)
+        self.v_model = vmap(self.model, (None, 0))
+
+        self.residual = lambda params, points: 0
+        self.v_residual = lambda params, points: 0
 
         self.interior_loss = lambda params, args: 0
         self.boundary_loss = lambda params, args: 0
         self.interface_loss = lambda params, args: 0
 
-    def init_params(self, sizes: Shape) -> None:
+        self.loss = lambda params, args: 0
+        self.grad_loss = lambda params, args: 0
+
+    def init_params(self, sizes: Shape, optimizer: GradientTransformation) -> None:
+        self.input_size = sizes[0]
         key, self.rand_key = random.split(self.rand_key)
         self.params = init_network_params(sizes, key)
 
+        self.optimizer = optimizer
+        self.optstate = optimizer.init(self.params)
+
     @staticmethod
-    @jit
+    @partial(jit, static_argnums=(0, 3))
     def update_iteration(
         grad_loss: Callable[[Params, dict], Updates],
         params: Params,
@@ -122,6 +134,9 @@ class PINN:
                 + self.interface_loss(params, args)
             )
 
+        self.loss = loss
+        self.grad_loss = jit(grad(loss))
+
         return loss
 
     def set_loss(self, *args, **kwargs):
@@ -171,10 +186,18 @@ class XPINN:
 
         self.PINNs: list[PINN] = []
         self.Interfaces: list[Interface] = []
+        # self.main_args = {i: {} for i, _ in enumerate(self.PINNs)}
+        self.main_args = {}
 
-        for item in data["XPINNs"]:
+        for i, item in enumerate(data["XPINNs"]):
+            # self.main_args[i] = {}
+            # args = self.main_args[i]
             interior = np.asarray(item["Internal points"])
             boundary = np.asarray(item["Boundary points"])
+            # args["boundary"] = boundary
+            # args["interior"] = interior
+
+            self.main_args[i] = {"boundary": boundary, "interior": interior}
 
             key, subkey = random.split(key)
             new_PINN = PINN(interior, boundary, activation, key)
@@ -188,11 +211,65 @@ class XPINN:
             new_Interface = Interface(indices, points)
             self.Interfaces.append(new_Interface)
 
+        for interface in self.Interfaces:
+            a, b = sorted(interface.indices)
+            for idx in interface.indices:
+                args = self.main_args[idx]
+                args[f"interface {a}{b}"] = interface.points
+
         # print(self.PINNs)
         # print(self.Interfaces)
 
-    def transfer_interface_values(self):
-        raise NotImplementedError
+    def transfer_interface_values(self) -> None:
+        for interface in self.Interfaces:
+            i, j = interface.indices
+            self._interface_comm(i, j)
+            self._interface_comm(j, i)
+
+    def _interface_comm(self, i: int, j: int) -> None:
+        a, b = sorted([i, j])
+        pinn_i = self.PINNs[i]
+        args_i = self.main_args[i]
+        args_j = self.main_args[j]
+
+        points = args_i[f"interface {a}{b}"]
+        res_i = pinn_i.v_residual(pinn_i.params, points)
+        args_j[f"interface res {i}"] = res_i
+
+        val_i = pinn_i.v_model(pinn_i.params, points)
+        args_j[f"interface val {i}"] = val_i
+
+    def optimize_iter(self):
+        self.transfer_interface_values()
+        losses = []
+
+        for i, pinn in enumerate(self.PINNs):
+            args = self.main_args[i]
+
+            iter_loss = pinn.loss(pinn.params, args)
+
+            losses.append(iter_loss)
+
+            params, optstate = pinn.update_iteration(
+                pinn.grad_loss,
+                pinn.params,
+                args,
+                pinn.optimizer,
+                pinn.optstate,
+            )
+            pinn.params, pinn.optstate = params, optstate
+
+        return losses
+
+    def run_iters(self, epoch: int):
+        losses = []
+        for i in range(epoch):
+            losses.append(self.optimize_iter())
+
+            if i % 1000 == 0:
+                print(f"{i / epoch * 100:.2f}% iter = {i} of {epoch}")
+
+        return losses
 
 
 if __name__ == "__main__":
