@@ -55,7 +55,7 @@ def XPINNs(activations: list[Activator]):
 if __name__ == "__main__":
     layer_sizes = [2, 32, 3]
     params = init_network_params(layer_sizes, random.PRNGKey(0))
-    activation = lambda x: jnp.tanh(x)
+    activation = lambda x: jnp.tanh(x)  # noqa: E731
     predictor = neural_network(activation)
     input_size = 2
     x = jnp.arange(0, input_size)

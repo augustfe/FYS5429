@@ -1,5 +1,5 @@
 import jax.numpy as np
-from jax import jit, random, grad, vmap  # noqa
+from jax import jit, random, grad, vmap
 import json
 from pathlib import Path
 from dataclasses import dataclass
@@ -15,7 +15,7 @@ from type_util import (
     Updates,
 )
 import optax
-from functools import partial  # noqa
+from functools import partial
 
 
 @dataclass
@@ -44,12 +44,14 @@ class PINN:
         Args:
             interior (np.ndarray): Points internal to the subdomain
             boundary (np.ndarray): Points along the boundary of the domain
+            activation (Activator): Activation function for the layers
+            rand_key (int): Initial key used to generate random values with jax
         """
         self.interior = interior
         self.boundary = boundary
         self.rand_key = rand_key
         self.model = neural_network(activation)
-        self.v_model = vmap(self.model, (None, 0))
+        self.v_model = jit(vmap(self.model, (None, 0)))
 
         self.residual = lambda params, points: 0
         self.v_residual = lambda params, points: 0
@@ -62,6 +64,12 @@ class PINN:
         self.grad_loss = lambda params, args: 0
 
     def init_params(self, sizes: Shape, optimizer: GradientTransformation) -> None:
+        """Initialize the parameters of the network
+
+        Args:
+            sizes (Shape): Shape of the layers, [in_size, hidden1, ..., hiddenN, out_size]
+            optimizer (GradientTransformation): Optax compatible optimizer
+        """
         self.input_size = sizes[0]
         key, self.rand_key = random.split(self.rand_key)
         self.params = init_network_params(sizes, key)
@@ -139,21 +147,6 @@ class PINN:
 
         return loss
 
-    def set_loss(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _feedforward(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def _backpropogate(self, *args, **kwargs):
-        raise NotImplementedError
-
-    @staticmethod
-    @jit
-    def compute_add(a: int, b: int):
-        "Example method of jit-ing a method of a class"
-        return a + b
-
 
 class XPINN:
     def __init__(
@@ -180,22 +173,17 @@ class XPINN:
         with open(input_file, "r") as infile:
             data = json.load(infile)
 
+        # Set initial jax random key
         key = random.PRNGKey(seed)
-
-        # print(data)
 
         self.PINNs: list[PINN] = []
         self.Interfaces: list[Interface] = []
-        # self.main_args = {i: {} for i, _ in enumerate(self.PINNs)}
         self.main_args = {}
 
+        # Store data for each PINN
         for i, item in enumerate(data["XPINNs"]):
-            # self.main_args[i] = {}
-            # args = self.main_args[i]
             interior = np.asarray(item["Internal points"])
             boundary = np.asarray(item["Boundary points"])
-            # args["boundary"] = boundary
-            # args["interior"] = interior
 
             self.main_args[i] = {"boundary": boundary, "interior": interior}
 
@@ -205,6 +193,7 @@ class XPINN:
 
             key = subkey
 
+        # Store data for each Interface
         for item in data["Interfaces"]:
             indices = item["XPINNs"]
             points = np.asarray(item["Points"])
@@ -217,16 +206,20 @@ class XPINN:
                 args = self.main_args[idx]
                 args[f"interface {a}{b}"] = interface.points
 
-        # print(self.PINNs)
-        # print(self.Interfaces)
-
     def transfer_interface_values(self) -> None:
+        """Communicate relevant values across each interface."""
         for interface in self.Interfaces:
             i, j = interface.indices
             self._interface_comm(i, j)
             self._interface_comm(j, i)
 
     def _interface_comm(self, i: int, j: int) -> None:
+        """Compute values across boundary, and transfer.
+
+        Args:
+            i (int): Index of PINN to compute values for
+            j (int): Index of PINN to save values for
+        """
         a, b = sorted([i, j])
         pinn_i = self.PINNs[i]
         args_i = self.main_args[i]
@@ -239,9 +232,14 @@ class XPINN:
         val_i = pinn_i.v_model(pinn_i.params, points)
         args_j[f"interface val {i}"] = val_i
 
-    def optimize_iter(self):
+    def optimize_iter(self) -> list[float]:
+        """One iteration of optimizing the networks.
+
+        Returns:
+            list[int]: Losses for the different networks
+        """
         self.transfer_interface_values()
-        losses = []
+        losses: list[float] = []
 
         for i, pinn in enumerate(self.PINNs):
             args = self.main_args[i]
@@ -257,19 +255,32 @@ class XPINN:
                 pinn.optimizer,
                 pinn.optstate,
             )
+            # Typehinting
+            params: Params
+            optstate: OptState
+
             pinn.params, pinn.optstate = params, optstate
 
         return losses
 
-    def run_iters(self, epoch: int):
+    def run_iters(self, epoch: int) -> Array:
         losses = []
         for i in range(epoch):
-            losses.append(self.optimize_iter())
+            iter_loss = self.optimize_iter()
+            losses.append(iter_loss)
 
             if i % 1000 == 0:
-                print(f"{i / epoch * 100:.2f}% iter = {i} of {epoch}")
+                print(
+                    f"{i / epoch * 100:.2f}% iter = {i} of {epoch}: Total loss = {sum(iter_loss)}"
+                )
 
-        return losses
+        return np.asarray(losses)
+
+
+@jit
+def insert_elem(arr: Array, idx: int, jdx: int, elem) -> Array:
+    arr = arr.at[idx, jdx].set(elem)
+    return arr
 
 
 if __name__ == "__main__":
