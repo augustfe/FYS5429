@@ -3,7 +3,7 @@ from jax import jit, random, grad, vmap
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from NN_model import init_network_params, neural_network
+from base_network import init_network_params, neural_network
 from type_util import (
     Array,
     Activator,
