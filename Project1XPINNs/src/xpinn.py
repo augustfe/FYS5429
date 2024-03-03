@@ -153,3 +153,29 @@ class XPINN:
                 )
 
         return np.asarray(losses)
+
+    def predict(self, input_file: str | Path = None):
+        if input_file:
+            main_args = {}
+            with open(input_file) as infile:
+                data = json.load(infile)
+
+            for i, item in enumerate(data["XPINNs"]):
+                interior = np.asarray(item["Internal points"])
+                boundary = np.asarray(item["Boundary points"])
+
+                main_args[i] = {"boundary": boundary, "interior": interior}
+
+        else:
+            main_args = self.main_args
+
+        total_points = []
+        predictions = []
+
+        for i, pinn in enumerate(self.PINNs):
+            points, prediction = pinn.predict(main_args[i])
+
+            total_points.append(points)
+            predictions.append(prediction)
+
+        return total_points, predictions

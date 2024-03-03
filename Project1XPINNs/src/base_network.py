@@ -2,6 +2,7 @@ import jax.numpy as jnp
 from jax import random, vmap
 import numpy as np
 from type_util import Activator, Array, Shape, Params, ArrayLike, Callable
+from jax import lax
 
 
 # ---------------------------- Jax documentation ----------------------------
@@ -31,11 +32,13 @@ def neural_network(activation: Activator) -> Callable[[Params, ArrayLike], Array
         z = input
 
         for w, b in params[:-1]:
-            outputs = jnp.dot(w, z) + b
+            outputs = lax.add(lax.dot(w, z), b)
+            # outputs = jnp.dot(w, z) + b
             z = activation(outputs)
 
         final_w, final_b = params[-1]
-        z = jnp.dot(final_w, z) + final_b
+        z = lax.add(lax.dot(final_w, z), final_b)
+        # z = jnp.dot(final_w, z) + final_b
         return z
 
     return NN_model

@@ -1,4 +1,5 @@
 import optax
+import jax.numpy as np
 from base_network import init_network_params, neural_network
 from jax import grad, jit, random, vmap
 from type_util import (
@@ -120,8 +121,8 @@ class PINN:
                 float: Evaluated loss
             """
             return (
-                self.interior_loss(params, args)
-                + self.boundary_loss(params, args)
+                20 * self.interior_loss(params, args)
+                + 20 * self.boundary_loss(params, args)
                 + self.interface_loss(params, args)
             )
 
@@ -129,3 +130,11 @@ class PINN:
         self.grad_loss = jit(grad(loss))
 
         return loss
+
+    def predict(self, args: dict[str, Array]):
+        b = args["boundary"]
+        i = args["interior"]
+        points = np.vstack([b, i])
+
+        prediction = self.v_model(self.params, points)
+        return points, prediction
