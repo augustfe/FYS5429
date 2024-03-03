@@ -3,12 +3,14 @@ from region import Region
 import json
 
 
-def create_JSON(input_file: str | Path):
+def create_JSON(
+    input_file: str | Path, interior: int = 2000, edge: int = 200, test: bool = False
+):
     input_file = Path(input_file)
 
     total_region = Region(input_file)
-    total_region.test_points()
-    total_region.test_boundary_and_interface()
+    total_region.test_points(interior)
+    total_region.test_boundary_and_interface(edge)
 
     vals = {"XPINNs": [], "Interfaces": []}
 
@@ -26,9 +28,13 @@ def create_JSON(input_file: str | Path):
 
         vals["Interfaces"].append(interface_dict)
 
-    with open(input_file.with_suffix(".json"), "w") as outfile:
-        outfile.write(json.dumps(vals, indent=1))
+    out = Path(input_file.stem + "_test" * test).with_suffix(".json")
+    out = input_file.parent / out
+    with open(out, "w") as outfile:
+        outfile.write(json.dumps(vals))
 
 
 if __name__ == "__main__":
-    create_JSON(Path(__file__).parent / "advection_constraints.txt")
+    infile = Path(__file__).parents[1] / "data/advection_constraints.txt"
+    create_JSON(infile)
+    create_JSON(infile, 20000, 2000, True)
