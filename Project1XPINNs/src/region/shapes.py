@@ -40,8 +40,7 @@ class ConvexPolygon(Shape):
         self.vectors = _create_vectors(vertices)
 
     def is_inside(self, point: Array) -> bool:
-        affine_points = point - self.vertices
-        return _point_inside_poly(self.vectors, affine_points)
+        return _point_inside_poly(point, self.vectors, self.vertices)
 
 
 class Circle(Shape):
@@ -50,7 +49,7 @@ class Circle(Shape):
         self.radius = radius
 
     def is_inside(self, point: Array) -> bool:
-        return _point_inside_circ(self.center, point, self.radius)
+        return _point_inside_circ(point, self.center, self.radius)
 
 
 # We place the methods outside the classes, such
@@ -71,16 +70,19 @@ def _create_vectors(points: Array) -> Array:
 
 
 @jit
-def _point_inside_poly(affine_segments: Array, affine_points: Array) -> bool:
+def _point_inside_poly(point: Array, affine_segments: Array, vertices: Array) -> bool:
     """Check whether a point is inside a polygon.
 
     Args:
+        point (Array): Point to check
         affine_segments (Array): Vectors between polygon vertices
-        affine_points (Array): Difference between the given point, and the polygon vertices
+        vertices (Array): Vertices of the polygon
 
     Returns:
         bool: True, if the point lies inside the shape
     """
+    affine_points = point - vertices
+
     # Vectorize to check each segment-point pair
     v_get_side = vmap(_get_side)
     side = v_get_side(affine_segments, affine_points)
@@ -115,12 +117,12 @@ def _get_side(affine_segment: Array, affine_point: Array) -> bool:
 
 # ----------------- CIRCLE METHODS ----------------- #
 @jit
-def _point_inside_circ(center: Array, point: Array, radius: Scalar) -> bool:
+def _point_inside_circ(point: Array, center: Array, radius: Scalar) -> bool:
     """Check if the point is inside the circle
 
     Args:
-        center (Array): Center of the circle
         point (Array): Point to check
+        center (Array): Center of the circle
         radius (Scalar): Radius of the circle
 
     Returns:
@@ -137,12 +139,14 @@ if __name__ == "__main__":
     square = ConvexPolygon(vertices)
     circ = Circle(np.asarray([1.5, 1.5]), 1)
 
-    for shape in [square, circ]:
+    shapes: list[Shape] = [square, circ]
+
+    for shape in shapes:
         x = np.linspace(0, 3, 50)
         X, Y = np.meshgrid(x, x)
         points = np.vstack([X.ravel(), Y.ravel()]).T
-        # inside_idx = square.are_inside(points)
-        inside_idx = circ.are_inside(points)
+
+        inside_idx = shape.are_inside(points)
 
         def plot_points(coords: Array) -> None:
             plt.scatter(coords[:, 0], coords[:, 1])
