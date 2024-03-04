@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Union
 from jax._src.typing import (  # noqa
     ArrayLike,
     Array,
@@ -12,3 +12,4 @@ from optax import (  # noqa
 )
 
 Activator = Callable[[ArrayLike], Array]
+Scalar = Union[int, float]
