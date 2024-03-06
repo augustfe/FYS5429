@@ -143,7 +143,8 @@ class XPINN:
 
     def run_iters(self, epoch: int) -> Array:
         losses = []
-        print_num = epoch // 10
+        print_num = max(epoch // 10, 1)
+
         for i in range(epoch):
             iter_loss = self.optimize_iter()
             losses.append(iter_loss)
@@ -154,7 +155,7 @@ class XPINN:
                 )
 
         print(
-            f"{(i+1) / epoch * 100:.2f}% iter = {i} of {epoch}: Total loss = {sum(iter_loss)}"
+            f"{(i+1) / epoch * 100:.2f}% iter = {i + 1} of {epoch}: Total loss = {sum(iter_loss)}"
         )
 
         return np.asarray(losses)
