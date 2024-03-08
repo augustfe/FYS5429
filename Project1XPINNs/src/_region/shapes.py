@@ -1,10 +1,12 @@
-from type_util import Array, Scalar, ArrayLike
+from type_util import Array, Scalar, ArrayLike, Callable
 import jax.numpy as np
 from jax import jit, vmap, lax
 from abc import ABC, abstractmethod
 
 
 class Shape(ABC):
+    boundary: list[Callable[[float], Array]]
+
     @abstractmethod
     def is_inside(self, point: Array) -> bool:
         """Check Whether a given point is inside the region
@@ -53,7 +55,7 @@ class Shape(ABC):
 
 
 class ConvexPolygon(Shape):
-    def __init__(self, vertices: ArrayLike) -> None:
+    def __init__(self, vertices: ArrayLike, boundary_indexes: list[int]) -> None:
         """A convex polygon, defined by a sequence of points in the plane
 
         Args:
@@ -61,6 +63,7 @@ class ConvexPolygon(Shape):
         """
         self.vertices = np.asarray(vertices)
         self.vectors = _create_vectors(self.vertices)
+        self.boundary = [self._boundary_func(idx) for idx in boundary_indexes]
 
     def is_inside(self, point: Array) -> bool:
         return _point_inside_poly(point, self.vectors, self.vertices)
@@ -68,17 +71,27 @@ class ConvexPolygon(Shape):
     def is_on_boundary(self, point: Array) -> bool:
         return _point_on_edge_poly(point, self.vectors, self.vertices)
 
+    def _boundary_func(self, idx: int) -> Callable[[float], Array]:
+        return lambda t: self.vertices[idx] + t * self.vectors[idx]
+
 
 class Circle(Shape):
-    def __init__(self, center: Array, radius: Scalar):
+    def __init__(self, center: Array, radius: Scalar, has_boundary: bool = False):
         self.center = center
         self.radius = radius
+        self.boundary = []
+        if has_boundary:
+            self.boundary = [self._angle_func]
 
     def is_inside(self, point: Array) -> bool:
         return _point_inside_circ(point, self.center, self.radius)
 
     def is_on_boundary(self, point: Array) -> bool:
         return _point_on_circumfrance(point, self.center, self.radius)
+
+    def _angle_func(self, t: float) -> Array:
+        t = 2 * np.pi * t
+        return np.array([np.cos(t), np.sin(t)]) * self.radius + self.center
 
 
 # We place the methods outside the classes, such

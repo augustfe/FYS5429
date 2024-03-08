@@ -2,7 +2,7 @@ from _region.shapes import Shape, ConvexPolygon, Circle
 import numpy as onp
 import jax.numpy as np
 import matplotlib.pyplot as plt
-from type_util import Array
+from type_util import Array, Callable
 from jax import vmap, jit  # noqa
 from typing import Optional
 
@@ -21,9 +21,9 @@ class Subdomain:
         # for shape in composition + subtraction:
         #     self.boundary_len += shape.boundary_length()
 
-        self.boundaries = [lambda x: [0, 0] + x * [0, 1], lambda x: ...]
+        self.boundaries: list[Callable[[float], Array]] = []
         for shape in composition + subtraction:
-            self.boundaries.append(shape.blablabla)
+            self.boundaries += shape.boundary
 
         self.composition = composition
         self.subtraction = subtraction
@@ -45,10 +45,19 @@ class Subdomain:
         return points[are_valid]
 
     def create_boundary(self, num_points: int) -> Array:
-        boundary_points = []
-        for shape in self.composition:
-            boundary_points.append(shape.create_boundary(num_points))
-        return np.concatenate(boundary_points, axis=0)
+        n_bound = len(self.boundaries)
+        boundary_counts = onp.random.multinomial(num_points, [1 / n_bound] * n_bound)
+        boundary_points = np.zeros((num_points, 2))
+        so_far = 0
+        for boundary, boundary_counts in zip(self.boundaries, boundary_counts):
+            t_vals = onp.random.uniform(0, 1, boundary_counts)
+            x_vals = vmap(boundary)(t_vals)
+            boundary_points = boundary_points.at[so_far : so_far + boundary_counts].set(
+                x_vals
+            )
+            so_far += boundary_counts
+
+        return boundary_points
 
 
 @jit
@@ -66,6 +75,30 @@ def bool_sub(vec1: Array, vec2: Array) -> Array:
 class Domain:
     def __init__(self, subdomains: list[Subdomain]) -> None:
         self.subdomains = subdomains
+        self.main_args: dict[int, dict[str, Array]] = {}
+
+    def create_interior(self, n: int, limits: list[list[int]]) -> None:
+        lower, upper = limits
+
+        points = []
+        for low, high in zip(lower, upper):
+            points.append(onp.random.uniform(low, high, n))
+        points = np.column_stack(points)
+
+        for i, subdomain in enumerate(self.subdomains):
+            args = self.main_args[i]
+            args["interior"] = subdomain.are_inside(points)
+
+    def create_boundary(self, n: int) -> None:
+        total_length = sum(subdomain.boundary_len for subdomain in self.subdomains)
+
+        for i, subdom in enumerate(self.subdomains):
+            args = self.main_args[i]
+            num_points = int(subdom.boundary_len / total_length * n)
+            args["boundary"] = subdom.create_boundary(num_points)
+
+    def create_interface(self, n: int) -> None:
+        pass
 
 
 class _Domain:
