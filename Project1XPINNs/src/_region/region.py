@@ -3,13 +3,75 @@ import numpy as onp
 import jax.numpy as np
 import matplotlib.pyplot as plt
 from type_util import Array
+from jax import vmap, jit  # noqa
+from typing import Optional
+
+
+class Subdomain:
+    def __init__(
+        self,
+        composition: list[Shape],
+        index: int,
+        subtraction: Optional[list[Shape]] = None,
+    ) -> None:
+        if subtraction is None:
+            subtraction = []
+
+        self.boundary_len = 0
+        # for shape in composition + subtraction:
+        #     self.boundary_len += shape.boundary_length()
+
+        self.boundaries = [lambda x: [0, 0] + x * [0, 1], lambda x: ...]
+        for shape in composition + subtraction:
+            self.boundaries.append(shape.blablabla)
+
+        self.composition = composition
+        self.subtraction = subtraction
+
+        self.index = index
+        self.args: dict[str, Array] = {}
+
+    def are_inside(self, points: Array) -> Array:
+        are_valid = np.zeros(points.shape[0], dtype=bool)
+
+        for shape in self.composition:
+            additive = shape.are_inside(points)
+            are_valid = bool_or(are_valid, additive)
+
+        for shape in self.subtraction:
+            subtractive = shape.are_inside(points)
+            are_valid = bool_sub(are_valid, subtractive)
+
+        return points[are_valid]
+
+    def create_boundary(self, num_points: int) -> Array:
+        boundary_points = []
+        for shape in self.composition:
+            boundary_points.append(shape.create_boundary(num_points))
+        return np.concatenate(boundary_points, axis=0)
+
+
+@jit
+def bool_or(vec1: Array, vec2: Array) -> Array:
+    vec1 = np.logical_or(vec1, vec2)
+    return vec1
+
+
+@jit
+def bool_sub(vec1: Array, vec2: Array) -> Array:
+    vec1 = np.logical_and(vec1, np.invert(vec2))
+    return vec1
 
 
 class Domain:
+    def __init__(self, subdomains: list[Subdomain]) -> None:
+        self.subdomains = subdomains
+
+
+class _Domain:
     def __init__(self, *regions: tuple[Shape, ...]) -> None:
         # reverse regions such that we add domain region last
         self.regions = regions[::-1]
-        print(self.regions, type(self.regions))
         self.all_points: dict[str, dict[str, Array]] = dict()
 
     def add_shape(self, shape: Shape) -> None:
@@ -48,9 +110,8 @@ class Domain:
 
         # Calculate the number of points to sample on each edge based on their length
         num_vertices = len(region.vertices)
-        edge_lengths = np.linalg.norm(
-            np.roll(region.vertices, -1, axis=0) - region.vertices, axis=1
-        )
+        edge_lengths = np.linalg.norm(region.vectors, axis=1)
+
         total_perimeter = np.sum(edge_lengths)
         points_per_edge = np.round(
             (edge_lengths / total_perimeter) * n_boundary
@@ -150,7 +211,7 @@ if __name__ == "__main__":
     square = ConvexPolygon(square_vertices)
 
     # Create a region with these shapes
-    thingy = Domain(domain, square, circle)
+    thingy = _Domain(domain, square, circle)
     thingy.generate_data([(20, 20), (20, 20), (20, 20)])
 
     # Generate 100 interior points for each shape in the region

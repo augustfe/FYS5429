@@ -28,6 +28,7 @@ class Shape(ABC):
         """
         return vmap(self.is_inside)(points)
 
+    @abstractmethod
     def is_on_boundary(self, point: Array) -> bool:
         """Check Whether a given point is on boundary of the region
 
@@ -160,7 +161,7 @@ def _point_on_segment(point: Array, vertecies: Array):
     """
     # help needed here
     v_1, v_2 = vertecies
-    return np.isclose(np.cross(v_1-v_2, point-v_1), 0)
+    return np.isclose(np.cross(v_1 - v_2, point - v_1), 0)
 
 
 @jit
