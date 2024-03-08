@@ -97,7 +97,7 @@ def _create_vectors(points: Array) -> Array:
     return shifted_points - points
 
 
-@jit
+# @jit
 def _point_inside_poly(point: Array, affine_segments: Array, vertices: Array) -> bool:
     """Check whether a point is inside a polygon.
 
@@ -132,11 +132,19 @@ def _point_on_edge_poly(point: Array, affine_segments: Array, vertices: Array):
     Returns:
         bool: True, if the point lies on the edge of a polygon
     """
-    v_point_on_segment = vmap(_point_on_segment)
-    on_segment = v_point_on_segment(point, vertices)
 
-    # roll and array_equal to check all values are the same(all left or all right)
-    on_segment
+    # rolled_vertecies = np.column_stack(
+    #  (np.roll(vertices, 1), np.roll(vertices)))
+    # v_point_on_segment = vmap(_point_on_segment)
+
+    for i in range(len(vertices)):
+        # Define the current edge
+        v_1 = np.array(vertices[i])
+        v_2 = np.array(vertices[(i + 1) % len(vertices)])
+        # Check if the point is collinear (cross product is zero)
+        if np.isclose(np.cross(v_2 - v_1, point - v_1), 0):
+            return True
+    return False
 
 
 @jit
@@ -150,7 +158,9 @@ def _point_on_segment(point: Array, vertecies: Array):
     Returns:
         _type_: _description_
     """
-    pass
+    # help needed here
+    v_1, v_2 = vertecies
+    return np.isclose(np.cross(v_1-v_2, point-v_1), 0)
 
 
 @jit
