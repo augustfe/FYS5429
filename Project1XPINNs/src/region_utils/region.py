@@ -6,6 +6,7 @@ from jax import vmap, jit
 from collections import defaultdict
 import json
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 
 class Subdomain:
@@ -68,6 +69,9 @@ class Subdomain:
             Array: Boundary points for the subdomain
         """
         n_bound = len(self.boundaries)
+        if n_bound == 0:
+            return np.array([])
+
         boundary_counts = onp.random.multinomial(num_points, [1 / n_bound] * n_bound)
         boundary_points = np.zeros((num_points, 2))
         so_far = 0
@@ -204,16 +208,26 @@ class Domain:
 
     def plot(self) -> None:
         """Plot the domain points"""
-        import matplotlib.pyplot as plt
-
         for i, args in enumerate(self.pinn_points.values()):
-            plt.scatter(*args["interior"].T, label=f"Interior {i}")
-            plt.scatter(*args["boundary"].T, label=f"Boundary {i}")
+            self._plot_array(args["interior"], f"Interior {i}")
+            self._plot_array(args["boundary"], f"Boundary {i}")
 
         for key, val in self.interfaces.items():
             points = sum([point.tolist() for point in val], [])
-            plt.scatter(*np.array(points).T, label=f"Interface {key}")
+            self._plot_array(np.array(points), f"Interface {key}")
 
         plt.legend()
         plt.title("Domain Points")
         plt.show()
+
+    def _plot_array(self, arr: Array, label: str) -> None:
+        """Plot an array of points
+
+        Args:
+            arr (Array): Array of points
+            label (str): Label for the plot
+        """
+        if arr.size == 0:
+            return
+
+        plt.scatter(*arr.T, label=label)
