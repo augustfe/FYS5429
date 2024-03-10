@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 
 class Shape(ABC):
     boundary: list[Callable[[float], Array]]
+    boundary_length: int = 0
 
     @abstractmethod
     def is_inside(self, point: Array) -> bool:
@@ -30,66 +31,54 @@ class Shape(ABC):
         """
         return vmap(self.is_inside)(points)
 
-    @abstractmethod
-    def is_on_boundary(self, point: Array) -> bool:
-        """Check Whether a given point is on boundary of the region
-
-        Args:
-            point (Array): Point to check
-
-        Returns:
-            bool: Whether the point is inside
-        """
-        pass
-
-    def are_on_boundary(self, points: Array) -> Array:
-        """Check whether multiple points are on the boundary of a region
-
-        Args:
-            points (Array): Array of points to check
-
-        Returns:
-            Array: Array of booleans, corresponing to whether each point is on boundary
-        """
-        return vmap(self.is_on_boundary)(points)
-
 
 class ConvexPolygon(Shape):
-    def __init__(self, vertices: ArrayLike, boundary_indexes: list[int]) -> None:
+    def __init__(self, vertices: ArrayLike, boundary_indexes: list[int] = None) -> None:
         """A convex polygon, defined by a sequence of points in the plane
 
         Args:
             vertices (Array): The vertices of the polygon, in the order they appear
+            boundary_indexes (list[int], optional): The indices of the vertices that are on the boundary
         """
+        if boundary_indexes is None:
+            boundary_indexes = []
+
         self.vertices = np.asarray(vertices)
         self.vectors = _create_vectors(self.vertices)
         self.boundary = [self._boundary_func(idx) for idx in boundary_indexes]
+        for idx in boundary_indexes:
+            self.boundary_length += np.linalg.norm(self.vectors[idx], ord=2)
 
     def is_inside(self, point: Array) -> bool:
         return _point_inside_poly(point, self.vectors, self.vertices)
-
-    def is_on_boundary(self, point: Array) -> bool:
-        return _point_on_edge_poly(point, self.vectors, self.vertices)
 
     def _boundary_func(self, idx: int) -> Callable[[float], Array]:
         return lambda t: self.vertices[idx] + t * self.vectors[idx]
 
 
 class Circle(Shape):
-    def __init__(self, center: Array, radius: Scalar, has_boundary: bool = False):
+    def __init__(
+        self, center: Array, radius: Scalar, has_boundary: bool = False
+    ) -> None:
+        """A circle in the plane, defined by a center and a radius
+
+        Args:
+            center (Array): Center of the circle
+            radius (Scalar): Radius of the circle
+            has_boundary (bool, optional): Whether to include the boundary. Defaults to False.
+        """
         self.center = center
         self.radius = radius
         self.boundary = []
+
         if has_boundary:
-            self.boundary = [self._angle_func]
+            self.boundary = [self._boundary_func]
+            self.boundary_length = 2 * np.pi * radius
 
     def is_inside(self, point: Array) -> bool:
         return _point_inside_circ(point, self.center, self.radius)
 
-    def is_on_boundary(self, point: Array) -> bool:
-        return _point_on_circumfrance(point, self.center, self.radius)
-
-    def _angle_func(self, t: float) -> Array:
+    def _boundary_func(self, t: float) -> Array:
         t = 2 * np.pi * t
         return np.array([np.cos(t), np.sin(t)]) * self.radius + self.center
 
@@ -135,49 +124,6 @@ def _point_inside_poly(point: Array, affine_segments: Array, vertices: Array) ->
 
 
 @jit
-def _point_on_edge_poly(point: Array, affine_segments: Array, vertices: Array):
-    """Check whether a point is on edge of a polygon.
-
-    Args:
-        point (Array): Point to check
-        affine_segments (Array): Vectors between polygon vertices
-        vertices (Array): Vertices of the polygon
-
-    Returns:
-        bool: True, if the point lies on the edge of a polygon
-    """
-
-    # rolled_vertecies = np.column_stack(
-    #  (np.roll(vertices, 1), np.roll(vertices)))
-    # v_point_on_segment = vmap(_point_on_segment)
-
-    for i in range(len(vertices)):
-        # Define the current edge
-        v_1 = np.array(vertices[i])
-        v_2 = np.array(vertices[(i + 1) % len(vertices)])
-        # Check if the point is collinear (cross product is zero)
-        if np.isclose(np.cross(v_2 - v_1, point - v_1), 0):
-            return True
-    return False
-
-
-@jit
-def _point_on_segment(point: Array, vertecies: Array):
-    """Check wheter point is on line segment
-
-    Args:
-        point (Array): Point to check
-        affine_segment (Array): vector between polygon vertecies
-
-    Returns:
-        _type_: _description_
-    """
-    # help needed here
-    v_1, v_2 = vertecies
-    return np.isclose(np.cross(v_1 - v_2, point - v_1), 0)
-
-
-@jit
 def _get_side(affine_segment: Array, affine_point: Array) -> bool:
     """Calculate which side of the line a point lies.
 
@@ -215,22 +161,6 @@ def _point_inside_circ(point: Array, center: Array, radius: Scalar) -> bool:
     """
     dist = np.sum((center - point) ** 2)
     return dist < radius**2
-
-
-@jit
-def _point_on_circumfrance(point: Array, center: Array, radius: Scalar) -> bool:
-    """Check if the point is on the circumfrance of the circle
-
-    Args:
-        point (Array): Point to check
-        center (Array): Center of the circle
-        radius (Scalar): Radius of the circle
-
-    Returns:
-        bool: True, if the point is contained in circumfrance circle
-    """
-    dist = np.sum((center - point) ** 2)
-    return np.isclose(dist, radius**2)
 
 
 if __name__ == "__main__":
