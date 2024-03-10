@@ -121,8 +121,8 @@ class PINN:
                 float: Evaluated loss
             """
             return (
-                20 * self.interior_loss(params, args)
-                + 20 * self.boundary_loss(params, args)
+                self.interior_loss(params, args)
+                + self.boundary_loss(params, args)
                 + self.interface_loss(params, args)
             )
 
