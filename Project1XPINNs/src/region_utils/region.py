@@ -173,7 +173,7 @@ class Domain:
         inter_points = np.linspace(start, end, n)
         self.interfaces[(i, j)].append(inter_points)
 
-    def write_to_file(self, filename: str) -> None:
+    def write_to_file(self, filename: str | Path) -> None:
         """Write the domain data to a JSON file
 
         Args:
