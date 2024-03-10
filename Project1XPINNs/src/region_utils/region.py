@@ -2,18 +2,27 @@ from region_utils.shapes import Shape
 import numpy as onp
 import jax.numpy as np
 from type_util import Array, Callable
-from jax import vmap, jit  # noqa
-from typing import Optional
+from jax import vmap, jit
 from collections import defaultdict
 import json
+from pathlib import Path
 
 
 class Subdomain:
     def __init__(
         self,
         composition: list[Shape],
-        subtraction: Optional[list[Shape]] = None,
+        subtraction: list[Shape] = None,
     ) -> None:
+        """
+        Initializes a Subdomain, based on Shapes.
+
+        Args:
+            composition (list[Shape]):
+                A list of Shape objects representing the composition of the subdomain.
+            subtraction (list[Shape], optional):
+                A list of Shape objects representing the subtraction from the subdomain. Defaults to None.
+        """
         if subtraction is None:
             subtraction = []
 
@@ -29,6 +38,14 @@ class Subdomain:
         self.args: dict[str, Array] = {}
 
     def are_inside(self, points: Array) -> Array:
+        """Get the points that are inside the subdomain
+
+        Args:
+            points (Array): Total points of the domain
+
+        Returns:
+            Array: The valid points within the subdomain
+        """
         are_valid = np.zeros(points.shape[0], dtype=bool)
 
         for shape in self.composition:
@@ -42,6 +59,14 @@ class Subdomain:
         return points[are_valid]
 
     def create_boundary(self, num_points: int) -> Array:
+        """Create the boundary points for the subdomain
+
+        Args:
+            num_points (int): The number of boundary points to create
+
+        Returns:
+            Array: Boundary points for the subdomain
+        """
         n_bound = len(self.boundaries)
         boundary_counts = onp.random.multinomial(num_points, [1 / n_bound] * n_bound)
         boundary_points = np.zeros((num_points, 2))
@@ -59,27 +84,55 @@ class Subdomain:
 
 @jit
 def bool_or(vec1: Array, vec2: Array) -> Array:
+    """Bitwise or for boolean arrays
+
+    Args:
+        vec1 (Array): First boolean array
+        vec2 (Array): Second boolean array
+
+    Returns:
+        Array: Bitwise or of the two arrays
+    """
     vec1 = np.logical_or(vec1, vec2)
     return vec1
 
 
 @jit
 def bool_sub(vec1: Array, vec2: Array) -> Array:
+    """Bitwise subtraction for boolean arrays
+
+    Args:
+        vec1 (Array): First boolean array
+        vec2 (Array): Second boolean array
+
+    Returns:
+        Array: Bitwise result of vec1 and not vec2
+    """
     vec1 = np.logical_and(vec1, np.invert(vec2))
     return vec1
 
 
 class Domain:
     def __init__(self, subdomains: list[Subdomain]) -> None:
+        """Domain object, containing subdomains. Used to create the domain for the XPINN
+
+        Args:
+            subdomains (list[Subdomain]): Subdomains that make up the domain
+        """
         self.subdomains = subdomains
         self.pinn_points: dict[int, dict[str, Array]] = {
             i: {} for i in range(len(subdomains))
         }
-        self.interfaces: defaultdict[list[int], list[Array]] = defaultdict(list)
+        self.interfaces: defaultdict[tuple[int, int], list[Array]] = defaultdict(list)
 
-    def create_interior(self, n: int, limits: list[list[int]]) -> None:
-        lower, upper = limits
+    def create_interior(self, n: int, lower: list[int], upper: list[int]) -> None:
+        """Create the interior points of the domain, dividing them among the subdomains
 
+        Args:
+            n (int): Number of points to create
+            lower (list[int]): Lower bounds of the domain
+            upper (list[int]): Upper bounds of the domain
+        """
         points = []
         for low, high in zip(lower, upper):
             points.append(onp.random.uniform(low, high, n))
@@ -91,6 +144,12 @@ class Domain:
             args["interior"] = valid_points
 
     def create_boundary(self, n: int) -> None:
+        """Generate the boundary points for the subdomains
+
+        Args:
+            n (int): Number of boundary points to create
+        """
+        # Divide the number of points evenly among the subdomains
         total_length = sum(subdomain.boundary_len for subdomain in self.subdomains)
 
         for i, subdom in enumerate(self.subdomains):
@@ -101,6 +160,13 @@ class Domain:
     def create_interface(
         self, n: int, indexes: tuple[int, int], points: tuple[Array, Array]
     ) -> None:
+        """Generate an interface between two subdomains
+
+        Args:
+            n (int): Number of points to create
+            indexes (tuple[int, int]): Indexes of the subdomain
+            points (tuple[Array, Array]): Start and end points of the interface
+        """
         start, end = points
         i, j = sorted(indexes)
 
@@ -108,6 +174,15 @@ class Domain:
         self.interfaces[(i, j)].append(inter_points)
 
     def write_to_file(self, filename: str) -> None:
+        """Write the domain data to a JSON file
+
+        Args:
+            filename (str): File to write the data to
+        """
+        filename = Path(filename)
+        if not filename.suffix == ".json":
+            raise ValueError("Filename must have a .json extension")
+
         with open(filename, "w") as outfile:
             data = {"XPINNs": [], "Interfaces": []}
             for i, subdomain in enumerate(self.subdomains):
@@ -128,6 +203,7 @@ class Domain:
             json.dump(data, outfile)
 
     def plot(self) -> None:
+        """Plot the domain points"""
         import matplotlib.pyplot as plt
 
         for i, args in enumerate(self.pinn_points.values()):
