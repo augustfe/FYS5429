@@ -24,7 +24,7 @@ def init_network_params(sizes: Shape, key: int) -> Params:
 
 
 # ---------------------------------------------------------------------------
-
+#Dummy comment
 
 def neural_network(activation: Activator) -> Callable[[Params, ArrayLike], Array]:
 
