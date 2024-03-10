@@ -1,4 +1,4 @@
-from _region.shapes import Shape
+from region_utils.shapes import Shape
 import numpy as onp
 import jax.numpy as np
 from type_util import Array, Callable
