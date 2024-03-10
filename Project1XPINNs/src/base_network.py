@@ -1,6 +1,6 @@
-import jax.numpy as jnp
+import jax.numpy as np
 from jax import random, vmap
-import numpy as np
+import numpy as onp
 from type_util import Activator, Array, Shape, Params, ArrayLike, Callable
 from jax import lax
 
@@ -32,12 +32,12 @@ def neural_network(activation: Activator) -> Callable[[Params, ArrayLike], Array
         z = input
 
         for w, b in params[:-1]:
-            outputs = lax.add(lax.dot(w, z), b)
+            outputs = np.dot(w, z) + b
             # outputs = jnp.dot(w, z) + b
             z = activation(outputs)
 
         final_w, final_b = params[-1]
-        z = lax.add(lax.dot(final_w, z), final_b)
+        z = np.dot(final_w, z) + final_b
         # z = jnp.dot(final_w, z) + final_b
         return z
 
@@ -58,10 +58,10 @@ def XPINNs(activations: list[Activator]):
 if __name__ == "__main__":
     layer_sizes = [2, 32, 3]
     params = init_network_params(layer_sizes, random.PRNGKey(0))
-    activation = lambda x: jnp.tanh(x)  # noqa: E731
+    activation = lambda x: np.tanh(x)  # noqa: E731
     predictor = neural_network(activation)
     input_size = 2
-    x = jnp.arange(0, input_size)
+    x = np.arange(0, input_size)
     print(x)
     print(f"The shape is {x.shape}")
     print(predictor(params, x))
