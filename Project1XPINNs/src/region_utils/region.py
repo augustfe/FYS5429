@@ -177,27 +177,55 @@ class Domain:
         inter_points = np.linspace(start, end, n)
         self.interfaces[(i, j)].append(inter_points)
 
-    def write_to_file(self, filename: str | Path) -> None:
+    def create_testing_data(self, n: int, lower: list[int], upper: list[int]) -> None:
+        """Create the testing data for the XPINN
+
+        Args:
+            n (int): Number of points per axes
+            lower (list[int]): Lower bounds of the domain
+            upper (list[int]): Upper bounds of the domain
+        """
+        points = []
+        for low, high in zip(lower, upper):
+            points.append(np.linspace(low, high, n))
+        points = np.column_stack([x.ravel() for x in np.meshgrid(*points)])
+
+        self.testing_points = defaultdict(dict)
+        for i, subdomain in enumerate(self.subdomains):
+            args = self.testing_points[i]
+            valid_points = subdomain.are_inside(points)
+            args["interior"] = valid_points
+            args["boundary"] = np.array([])
+
+    def write_to_file(self, filename: str | Path, train: bool = True) -> None:
         """Write the domain data to a JSON file
 
         Args:
-            filename (str): File to write the data to
+            filename (str | Path): File to write the data to
+            train (bool, optional): Whether to write the training data. Defaults to True.
         """
         filename = Path(filename)
         if not filename.suffix == ".json":
             raise ValueError("Filename must have a .json extension")
 
+        if train:
+            main_data = self.pinn_points
+            interfaces = self.interfaces
+        else:
+            main_data = self.testing_points
+            interfaces = {}
+
         with open(filename, "w") as outfile:
             data = {"XPINNs": [], "Interfaces": []}
             for i, subdomain in enumerate(self.subdomains):
-                args = self.pinn_points[i]
+                args = main_data[i]
                 subdomain_data = {
                     "Internal points": args["interior"].tolist(),
                     "Boundary points": args["boundary"].tolist(),
                 }
                 data["XPINNs"].append(subdomain_data)
 
-            for key, val in self.interfaces.items():
+            for key, val in interfaces.items():
                 data["Interfaces"].append(
                     {
                         "XPINNs": key,
@@ -206,13 +234,24 @@ class Domain:
                 )
             json.dump(data, outfile)
 
-    def plot(self) -> None:
-        """Plot the domain points"""
-        for i, args in enumerate(self.pinn_points.values()):
+    def plot(self, train: bool = True) -> None:
+        """Plot the domain points.
+
+        Args:
+            train (bool, optional): Whether to use the training or testing data. Defaults to True.
+        """
+        if train:
+            data = self.pinn_points
+            interfaces = self.interfaces
+        else:
+            data = self.testing_points
+            interfaces = {}
+
+        for i, args in enumerate(data.values()):
             self._plot_array(args["interior"], f"Interior {i}")
             self._plot_array(args["boundary"], f"Boundary {i}")
 
-        for key, val in self.interfaces.items():
+        for key, val in interfaces.items():
             points = sum([point.tolist() for point in val], [])
             self._plot_array(np.array(points), f"Interface {key}")
 
