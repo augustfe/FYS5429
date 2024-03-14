@@ -134,7 +134,10 @@ class PINN:
     def predict(self, args: dict[str, Array]):
         b = args["boundary"]
         i = args["interior"]
-        points = np.vstack([b, i])
+        if b.size == 0:
+            points = i
+        else:
+            points = np.vstack([b, i])
 
         prediction = self.v_model(self.params, points)
         return points, prediction
