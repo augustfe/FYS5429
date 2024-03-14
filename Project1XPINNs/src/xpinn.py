@@ -4,13 +4,9 @@ import json
 from jax import random
 from pathlib import Path
 from dataclasses import dataclass
-from type_util import (
-    Array,
-    Activator,
-    Params,
-    OptState,
-)
+from type_util import Array, Activator, Params, OptState, Shape
 from pinn import PINN
+import numpy as onp
 
 
 @dataclass
@@ -84,6 +80,24 @@ class XPINN:
                 args = self.main_args[idx]
                 args[f"interface {a}{b}"] = interface.points
 
+    def set_loss(self) -> None:
+        """Initialize the loss functions for each PINN."""
+        for pinn in self.PINNs:
+            pinn.create_loss()
+
+    def initialize_params(self, sizes: list[Shape], optimizer) -> None:
+        """Initialize the parameters for each PINN.
+
+        Args:
+            sizes (list[int]): Sizes of the layers for each PINN
+            optimizer ([type]): Optax compatible optimizer
+        """
+        self.input_size = sizes[0][0]
+        self.output_size = sizes[0][-1]
+
+        for pinn, size in zip(self.PINNs, sizes):
+            pinn.init_params(size, optimizer)
+
     def transfer_interface_values(self) -> None:
         """Communicate relevant values across each interface."""
         for interface in self.Interfaces:
@@ -110,21 +124,20 @@ class XPINN:
         val_i = pinn_i.v_model(pinn_i.params, points)
         args_j[f"interface val {i}"] = val_i
 
-    def optimize_iter(self) -> list[float]:
+    def optimize_iter(self, epoch: int) -> None:
         """One iteration of optimizing the networks.
 
         Returns:
             list[int]: Losses for the different networks
         """
         self.transfer_interface_values()
-        losses: list[float] = []
 
         for i, pinn in enumerate(self.PINNs):
             args = self.main_args[i]
 
             iter_loss = pinn.loss(pinn.params, args)
 
-            losses.append(iter_loss)
+            self.losses[i, epoch] = iter_loss
 
             params, optstate = pinn.update_iteration(
                 pinn.grad_loss,
@@ -139,26 +152,28 @@ class XPINN:
 
             pinn.params, pinn.optstate = params, optstate
 
-        return losses
+    def run_iters(self, num_epoch: int) -> Array:
+        self.losses = onp.zeros((len(self.PINNs), num_epoch))
 
-    def run_iters(self, epoch: int) -> Array:
-        losses = []
-        print_num = max(epoch // 10, 1)
+        print_num = max(num_epoch // 10, 1)
 
-        for i in range(epoch):
-            iter_loss = self.optimize_iter()
-            losses.append(iter_loss)
+        self.set_loss()
 
-            if i % print_num == 0:
+        for epoch in range(num_epoch):
+            self.optimize_iter(epoch)
+
+            iter_loss = sum(self.losses[:, epoch])
+
+            if epoch % print_num == 0:
                 print(
-                    f"{i / epoch * 100:.2f}% iter = {i} of {epoch}: Total loss = {sum(iter_loss)}"
+                    f"{epoch / num_epoch * 100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
                 )
 
         print(
-            f"{(i+1) / epoch * 100:.2f}% iter = {i + 1} of {epoch}: Total loss = {sum(iter_loss)}"
+            f"{(epoch+1) / num_epoch * 100:.2f}% iter = {epoch + 1} of {num_epoch}: Total loss = {iter_loss}"
         )
 
-        return np.asarray(losses)
+        return np.asarray(self.losses)
 
     def predict(self, input_file: str | Path = None):
         if input_file:
