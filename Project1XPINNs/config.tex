@@ -1,4 +1,3 @@
-
 \usepackage{bm}
 \usepackage{graphicx}
 \usepackage{epstopdf}
@@ -10,11 +9,13 @@
 \usepackage{color}
 \usepackage{comment}
  
-
 \usepackage{textpos}
 \usepackage{booktabs}
 \usepackage{multirow,bigdelim}
 \usepackage{float}
+\usepackage{tikz}
+
+\usepackage[super]{nth}
 
 \usepackage{upgreek} %upalpha in Saxena2021 Reference
 
@@ -46,6 +47,9 @@ apsrev41Control%
 \if@filesw \immediate \write \@auxout {\string \citation {apsrev41Control}}\fi
 }
 \makeatother
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 
 %\usepackage[left]{lineno}
