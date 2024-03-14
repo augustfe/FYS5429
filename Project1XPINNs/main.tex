@@ -3,40 +3,38 @@
 % Include the configuration file
 \input{config.tex}
 
-
-
 \begin{document}
 % \pagenumbering{gobble} 
 
-\title{Extended Physics-Informed Neural Networks}
+\title{UX-PINNs: A User-friendly Implementation of Extended Physics-Informed Neural Networks}
 
 \author{Femtehjell, Winsvold, Steeneveldt, Johannessen and Hu}
 \affiliation{Department of Mathematics, University of Oslo, N-0316 Oslo, Norway}
 
 
 \begin{abstract}
-    \lipsum[1-1] 
+\input{text/0_abstract}
 \end{abstract}
 
 \maketitle
 
 \tableofcontents
 
-
-\section{Introduction} 
+\section{Introduction}
 \input{text/1_introduction}\label{sec:introduction}
-\cite[p.~69--420]{Goodfellow2016}
 
-\section{Physics-Informed Neural Networks in broad strokes}
-\lipsum[5-6]
+\section{Theory}
+\input{text/2_theory}\label{sec:theory}
 
-\section{Domain Decomposition}
-\lipsum[6-7]
+\section{Method}
+\input{text/3_method}\label{sec:method}
+
+\section{Computational Experiments}
+\input{text/4_computational_experiments}\label{sec:compexp}
 
 \bibliography{Project1XPINNs/References} % add  references to this file
 
 \appendix
-\section{Source code}
-The code is available at \url{https://github.com/augustfe/FYS5429}
+\input{text/6_appendix}
 
 \end{document}
