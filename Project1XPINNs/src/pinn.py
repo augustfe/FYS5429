@@ -55,6 +55,7 @@ class PINN:
             optimizer (GradientTransformation): Optax compatible optimizer
         """
         self.input_size = sizes[0]
+        self.output_size = sizes[-1]
         key, self.rand_key = random.split(self.rand_key)
         self.params = init_network_params(sizes, key)
 
