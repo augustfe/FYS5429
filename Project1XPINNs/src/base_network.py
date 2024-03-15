@@ -41,7 +41,7 @@ def init_network_params(sizes: Shape, key: int) -> Params:
     """
     keys = random.split(key, len(sizes))
     return [
-        random_layer_params(m, n, k, np.sqrt(2 / (m + n)))
+        random_layer_params(m, n, k, np.sqrt(2 / (m + n)))#random_layer_params(m, n, k, np.sqrt(1 / m))
         for m, n, k in zip(sizes[:-1], sizes[1:], keys)
     ]
 
