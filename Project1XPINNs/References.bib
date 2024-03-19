@@ -20,6 +20,62 @@
     url={https://api.semanticscholar.org/CorpusID:229083388}
 }
 
+@article{XPINN_generalize,
+    author = {Hu, Zheyuan and Jagtap, Ameya D. and Karniadakis, George Em and Kawaguchi, Kenji},
+    title = {When Do Extended Physics-Informed Neural Networks (XPINNs) Improve Generalization?},
+    journal = {SIAM Journal on Scientific Computing},
+    volume = {44},
+    number = {5},
+    pages = {A3158-A3182},
+    year = {2022},
+    doi = {10.1137/21M1447039},
+    URL = {https://doi.org/10.1137/21M1447039},
+    eprint = {https://doi.org/10.1137/21M1447039},
+    abstract = { Physics-informed neural networks (PINNs) have become a popular choice for solving high-dimensional partial differential equations (PDEs) due to their excellent approximation power and generalization ability. Recently, extended PINNs (XPINNs) based on domain decomposition methods have attracted considerable attention due to their effectiveness in modeling multiscale and multiphysics problems and their parallelization. However, theoretical understanding of their convergence and generalization properties remains unexplored. In this study, we take an initial step towards understanding how and when XPINNs outperform PINNs. Specifically, for general multilayer PINNs and XPINNs, we first provide a prior generalization bound via the complexity of the target functions in the PDE problem and a posterior generalization bound via the posterior matrix norms of the networks after optimization. Moreover, based on our bounds, we analyze the conditions under which XPINNs improve generalization. Concretely, our theory shows that the key building block of XPINN, namely, the domain decomposition, introduces a tradeoff for generalization. On the one hand, XPINNs decompose the complex PDE solution into several simple parts, which decreases the complexity needed to learn each part and boosts generalization. On the other hand, decomposition leads to less training data being available in each subdomain, and hence such a model is typically prone to overfitting and may become less generalizable. Empirically, we choose five PDEs to show when XPINNs perform better than, similar to, or worse than PINNs, hence demonstrating and justifying our new theory. }
+}
+
+@article{RAISSI2019686,
+    title = {Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations},
+    journal = {Journal of Computational Physics},
+    volume = {378},
+    pages = {686-707},
+    year = {2019},
+    issn = {0021-9991},
+    doi = {https://doi.org/10.1016/j.jcp.2018.10.045},
+    url = {https://www.sciencedirect.com/science/article/pii/S0021999118307125},
+    author = {M. Raissi and P. Perdikaris and G.E. Karniadakis},
+    keywords = {Data-driven scientific computing, Machine learning, Predictive modeling, Runge–Kutta methods, Nonlinear dynamics},
+    abstract = {We introduce physics-informed neural networks – neural networks that are trained to solve supervised learning tasks while respecting any given laws of physics described by general nonlinear partial differential equations. In this work, we present our developments in the context of solving two main classes of problems: data-driven solution and data-driven discovery of partial differential equations. Depending on the nature and arrangement of the available data, we devise two distinct types of algorithms, namely continuous time and discrete time models. The first type of models forms a new family of data-efficient spatio-temporal function approximators, while the latter type allows the use of arbitrarily accurate implicit Runge–Kutta time stepping schemes with unlimited number of stages. The effectiveness of the proposed framework is demonstrated through a collection of classical problems in fluids, quantum mechanics, reaction–diffusion systems, and the propagation of nonlinear shallow-water waves.}
+}
+
+@ARTICLE{2020CMAME.36513028J,
+       author = {{Jagtap}, Ameya D. and {Kharazmi}, Ehsan and {Karniadakis}, George Em},
+        title = "{Conservative physics-informed neural networks on discrete domains for conservation laws: Applications to forward and inverse problems}",
+      journal = {Computer Methods in Applied Mechanics and Engineering},
+     keywords = {cPINN, Mortar PINN, Domain decomposition, Machine learning, Conservation laws, Inverse problems},
+         year = 2020,
+        month = jun,
+       volume = {365},
+          eid = {113028},
+        pages = {113028},
+          doi = {10.1016/j.cma.2020.113028},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2020CMAME.36513028J},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@article{Hu_2023,
+   title={Augmented Physics-Informed Neural Networks (APINNs): A gating network-based soft domain decomposition methodology},
+   volume={126},
+   ISSN={0952-1976},
+   url={http://dx.doi.org/10.1016/j.engappai.2023.107183},
+   DOI={10.1016/j.engappai.2023.107183},
+   journal={Engineering Applications of Artificial Intelligence},
+   publisher={Elsevier BV},
+   author={Hu, Zheyuan and Jagtap, Ameya D. and Karniadakis, George Em and Kawaguchi, Kenji},
+   year={2023},
+   month=nov, pages={107183} }
+
+
 @misc{kingma2017adam,
       title={Adam: A Method for Stochastic Optimization}, 
       author={Diederik P. Kingma and Jimmy Ba},
