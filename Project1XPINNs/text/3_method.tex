@@ -1,20 +1,33 @@
 \subsection{Domain Decomposition}
+We implement our domain decomposition framework with flexibility in mind, in order to allow for easy experimentation, designed to implement directly into our XPINN implementation.
+The computational domain, representing the physical and temporal space over which our problem is defined, is partitioned into multiple subdomains.
+
+The subdomains themselves are composed of additive and subtractive polygons and circles, allowing for a wide variety of geometric boundaries.
+The goal of domain decomposition is, among other aspect, division of the total workload required, increasing computational efficiency.
+It also offers an avenue for multiprocessing, which can quickly become cumbersome with traditional neural networks.
+
+
 Oppstykker domenet, hvorfor og hvordan
 
-In our implementation, domain decomposition was employed to enhance the scalability and efficiency of our XPINN model. The computational domain, representing the physical space over which our problem is defined, was partitioned into multiple subdomains. This division was based on a pre-defined configuration detailed in an input JSON file, which described the geometric boundaries of each subdomain and allocated specific internal and boundary points to them.
+In our implementation, domain decomposition was employed to enhance the scalability and efficiency of our XPINN model. The computational domain, representing the physical space over which our problem is defined, was partitioned into multiple subdomains. This division was based on a predefined configuration detailed in an input JSON file, which described the geometric boundaries of each subdomain and allocated specific internal and boundary points to them.
 
 In the case of advection
 
 \subsection{Adam}
-The problem at the heart of machine learning is, in effect, solving \autoref{eq:argmintheta} given a network architecture detailing the sizes and number of hidden layers, and the activation functions. This is done iteratively through the backpropagation algorithm, wherein the gradient of each layer with respect to the weights are calculated. The weights can then be adjusted through e.g. gradient descent, with
+The problem at the heart of machine learning is, in effect, solving \autoref{eq:argmintheta} given a network architecture detailing the sizes and number of hidden layers and the activation functions.
+This is done iteratively through the backpropagation algorithm, wherein the gradient of each layer with respect to the weights are calculated.
+The weights can then be adjusted through e.g. gradient descent, with
 \begin{equation}
     \boldsymbol{\theta}^{i+1} = \boldsymbol{\theta}^i - \gamma \frac{\partial \mathcal{C}}{\partial \boldsymbol{\theta}},
 \end{equation}
 where $\gamma \in \mathbb{R}_{+}$ is the step size or learning rate.
 
-It can be shown that for small enough $\gamma$, $\mathcal{C}(\boldsymbol{\theta}^i) \geq \mathcal{C}(\boldsymbol{\theta}^{i+1})$, leading to convergence to a local minima. With convex functions this is sufficient, as a local minima is then also a global minima. In a machine learning context this is rarely the case, giving the need for more complex algorithms.
+It can be shown that for small enough $\gamma$, $\mathcal{C}(\boldsymbol{\theta}^i) \geq \mathcal{C}(\boldsymbol{\theta}^{i+1})$, leading to convergence to a local minima.
+With convex functions, this is sufficient, as a local minima is then also a global minima.
+In a machine learning context this is rarely the case, giving the need for more complex algorithms.
 
-One such method is the Adaptive Moment Estimation (\textsc{Adam}) \cite{kingma2017adam} algorithm, which has grown incredibly popular in recent years. The algorithm is defined by
+One such method is the Adaptive Moment Estimation (\textsc{Adam}) \cite{kingma2017adam} algorithm, which has grown incredibly popular in recent years.
+The algorithm is defined by
 \begin{equation}
 \begin{split}
     g_{t} &\gets \nabla_{\boldsymbol{\theta}}\mathcal{C}(\boldsymbol{\theta}_t) \\
@@ -25,7 +38,10 @@ One such method is the Adaptive Moment Estimation (\textsc{Adam}) \cite{kingma20
 \end{equation}
 where $m, v$ are the \nth{1} and \nth{2} moment vectors, initialized to $\boldsymbol{0}$, $\beta_1, \beta_2 \in [0,1)$ are decay rates for the moment estimates, $x^{(n)}$ denotes the $n$th component of the vector, $g^{\circ 2}$ denotes the elementwise square $g \odot g$ and $\delta > 0$ is a numerical stabilizer. 
 
-This algorithm has effectively become the de facto standard for optimizing neural networks, however it is not without its problems. In fact, it can fail to converge even for simple convex functions \cite{reddi2019convergence}, in contradiction to what was claimed in \cite{kingma2017adam}. However, \textsc{Adam} has empirically performed well, which is why it grew popular in the first case. We leave discussing the impact this might have had on the development of recent methods as an exercise to the reader.
+This algorithm has effectively become the de facto standard for optimizing neural networks, however it is not without its problems.
+In fact, it can fail to converge even for simple convex functions \cite{reddi2019convergence}, in contradiction to what was claimed in \cite{kingma2017adam}.
+However, \textsc{Adam} has empirically performed well, which is why it grew popular in the first case.
+We leave discussing the impact this might have had on the development of recent methods as an exercise to the reader.
 
 Nevertheless, we utilize \textsc{Adam} in our implementation, using the \verb|Optax| \cite{deepmind2020jax} optimization library for \verb|JAX| \cite{jax2018github}.
 
@@ -33,9 +49,15 @@ Nevertheless, we utilize \textsc{Adam} in our implementation, using the \verb|Op
 @Junmiao Hu
 
 \subsection{JAX technicalities}\label{sec:JAX}
-In implementing, we focused on achieving good performance while keeping a certain degree of modularity. This simplifies the process of changing key parameters like the subdomain decomposition, or the problem at hand. The natural choice for implementing this was then to utilize \verb|JAX| \cite{jax2018github} within \verb|Python|. High-Performance Computing (HPC) and Object-Oriented Programming (OOP) are two programming paradigms which are often at odds with each other, stemming from the obfuscation of the underlying computations necessary to allow for a simple interface. We also lose out on possible problem-specific optimizations, as the program has to work in a wide variety of settings.
+In implementing, we focused on achieving good performance while keeping a certain degree of modularity.
+This simplifies the process of changing key parameters like the subdomain decomposition, or the problem at hand.
+The natural choice for implementing this was then to utilize \verb|JAX| \cite{jax2018github} within \verb|Python|.
+High-Performance Computing (HPC) and Object-Oriented Programming (OOP) are two programming paradigms which are often at odds with each other, stemming from the obfuscation of the underlying computations necessary to allow for a simple interface.
+We also lose out on possible problem-specific optimizations, as the program has to work in a wide variety of settings.
 
 \verb|JAX| serves as an important component, as it allows for efficient matrix / vector operations, which are the most computationally heavy aspect of most machine learning, through just-in-time (jit) compilation.
+Note that \verb|JAX| utilizes 32-bit floating points, which give us a little over 7 digits of precision.
+This limits our possible lowest loss to around $10^{-7}$, rather than the $10^{16}$ expected with 64-bit numbers.
 
 \subsection{Automatic Differentiation}\label{sec:autodiff}
 Pop off Daniel.

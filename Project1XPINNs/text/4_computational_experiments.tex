@@ -1,9 +1,46 @@
 \subsection{Advection Equation}
 \subsubsection{Problem Formulation}
+We firstly consider the one-dimensional linear advection equation, with \textcolor{red}{[$\ldots$ residual discontinuity?]}.
+The problem has a simple analytical solution, serving as a sanity check for whether our implementation of the method has any merit.
+It is defined by
+\begin{align}
+    u_x + \alpha \cdot u_t &= 0 \text{ on } \Omega & u(x, 0) &= f \text{ \textcolor{red}{on (?)} } \partial\Omega,
+\end{align}
+where $\Omega = [-1, 1] \times [0, 1]$, and the initial condition $f$ is defined by
+\begin{equation*}
+    f(x) =
+    \begin{cases}
+        1 &\text{if} \, x \in [-0.2, 0.2] \\
+        0 &\text{else}.
+    \end{cases}
+\end{equation*}
+
+We primarily consider the problem with $\alpha = 0.5$, defining a wave travelling right with no diffusion.
+We therefore decompose the domain according to the predicted discontinuity.
+In order to verify that our method is not simply learning the decomposition itself, we check that the wave is able to travel across the interfaces by setting $\alpha = 1$.
+
+Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer.
+We utilize $2000$ points for the interior, and $200$ evenly spread around the boundary and interfaces. 
+
 \subsubsection{Results}
 
 \subsection{Poisson Equation}
 \subsubsection{Problem Formulation}
+In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity as described by \cite{XPINN_generalize}.
+The problem is a second order linear PDE, and is defined as:
+\begin{align}\label{eq:poisson}
+    u_{xx}+u_{yy} &= f \text{ on } \Omega &
+    u(x,y) &= 0 \text{ on } \partial\Omega,
+\end{align}
+where $\Omega = [0,1] \times [0,1]$, and the residual is defined as:
+\begin{equation*}
+    f(x,y)=
+    \begin{cases}
+        1 &\text{if} \, (x,y)\in [0.25,0.75]\times[0.25,0.75] \\
+        0 &\text{else}.
+    \end{cases}
+\end{equation*}
+Using our XPINN methodology, we aim to reproduce the results presented by \cite{XPINN_generalize}.
 \subsubsection{Results}
 
 \subsection{Navier-Stokes Equation}
