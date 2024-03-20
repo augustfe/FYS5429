@@ -56,10 +56,18 @@ class XPINN:
 
         # Store data for each PINN
         for i, item in enumerate(data["XPINNs"]):
-            interior = np.asarray(item["Internal points"])
-            boundary = np.asarray(item["Boundary points"])
+            interior = np.asarray(item["Internal points"], dtype=np.float32)
+            boundary = np.asarray(item["Boundary points"], dtype=np.float32)
 
-            self.main_args[i] = {"boundary": boundary, "interior": interior}
+            self.main_args[i] = {}
+
+            for dkey in item:
+                if dkey != "Internal points" and dkey != "Boundary points":
+                    self.main_args[i][dkey] = np.asarray(
+                        item[dkey], dtype=np.float32)
+
+            self.main_args[i]['boundary'] = boundary
+            self.main_args[i]['interior'] = interior
 
             key, subkey = random.split(key)
             new_PINN = PINN(interior, boundary, activation, key)
