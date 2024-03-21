@@ -1,12 +1,17 @@
 \subsection{Advection Equation}
 \subsubsection{Problem Formulation}
-We firstly consider the one-dimensional linear advection equation, with \textcolor{red}{[$\ldots$ residual discontinuity?]}.
+We first consider the one-dimensional linear advection equation, with discontinuous residual $f$.
 The problem has a simple analytical solution, serving as a sanity check for whether our implementation of the method has any merit.
-It is defined by
-\begin{align}
-    u_x + \alpha \cdot u_t &= 0 \text{ on } \Omega & u(x, 0) &= f \text{ \textcolor{red}{on (?)} } \partial\Omega,
-\end{align}
-where $\Omega = [-1, 1] \times [0, 1]$, and the initial condition $f$ is defined by
+The problem is defined by equation \ref{eq:advection} below. 
+
+\begin{equation}
+    \begin{cases}
+    u_t + \alpha \cdot u_x &= 0 \text{ for } (x,t)\in [-1, 1] \times (0, 1] \\ 
+    u(x, 0) = u_0(x)&= f \text{ for } x \in [-1, 1],
+\end{cases}
+\label{eq:advection}
+\end{equation}
+where $\alpha = 0.5$, and the initial condition $f$ is defined by
 \begin{equation*}
     f(x) =
     \begin{cases}
@@ -15,9 +20,17 @@ where $\Omega = [-1, 1] \times [0, 1]$, and the initial condition $f$ is defined
     \end{cases}
 \end{equation*}
 
-We primarily consider the problem with $\alpha = 0.5$, defining a wave travelling right with no diffusion.
-We therefore decompose the domain according to the predicted discontinuity.
-In order to verify that our method is not simply learning the decomposition itself, we check that the wave is able to travel across the interfaces by setting $\alpha = 1$.
+By the method of characteristics, the analytical solution is:
+\begin{equation}
+    u(x,t) = u_0(x-\alpha t)=
+    \begin{cases}
+        1 &\text{if} \, x \in [-0.2 + \alpha t, 0.2 + \alpha t] \\
+        0 &\text{else}.
+    \end{cases}
+\end{equation}
+
+Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in figure \textcolor{red}{Insert citation}.
+In order to verify that our method is not simply learning the decomposition itself, we also verify that the wave is able to travel across the interfaces by setting $\alpha = 1$ while keeping the same decomposition.
 
 Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer.
 We utilize $2000$ points for the interior, and $200$ evenly spread around the boundary and interfaces. 
@@ -26,23 +39,71 @@ We utilize $2000$ points for the interior, and $200$ evenly spread around the bo
 
 \subsection{Poisson Equation}
 \subsubsection{Problem Formulation}
-In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity as described by \cite{XPINN_generalize}.
-The problem is a second order linear PDE, and is defined as:
+In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity. The problem is a second order linear PDE, and is defined as:
 \begin{align}\label{eq:poisson}
-    u_{xx}+u_{yy} &= f \text{ on } \Omega &
+\begin{cases}
+    u_{xx}+u_{yy} &= f \text{ on } \Omega \\
     u(x,y) &= 0 \text{ on } \partial\Omega,
+\end{cases}
 \end{align}
-where $\Omega = [0,1] \times [0,1]$, and the residual is defined as:
+where $\Omega = (0,1) \times (0,1)$. For the Poisson problem, we consider two residuals. 
+\paragraph{Continuous Residual:}
+The first residual is given by:
+\begin{equation}
+    f_{cont}(x,y)= -2\pi^2\sin(\pi x) \sin(\pi y),
+    \label{eq:continuous_poisson}
+\end{equation}
+which yields a known analytical solution:
 \begin{equation*}
-    f(x,y)=
+    u_{true}(x,y)=\sin(\pi x) \sin(\pi y).
+\end{equation*}
+
+Our experimental setup follows that of \textcite{müller2023achieving}. We consider the problem for both a single PINN and for an XPINN decomposition shown in figure \textcolor{red}{FIG}. For the PINN, we train using 900 interior points and 120 boundary points distributed uniformly. For the XPINNs, we also add 80 interface points. We apply unitary weights to the boundary and interface losses. Both solvers are trained using the ADAM optimizer with an exponentially decreasing learning rate. The initial learning rate is $10^{-3}$. After $1.5\times 10^4$ steps, we decrease the learning rate by a factor of $10^{-1}$ every $10^4$ steps until a minimum learning rate of $10^{-7}$. We train both cases for $2\times 10^5$ iterations.
+
+\begin{figure}
+    \centering
+    \includegraphics{}
+    \caption{Caption}
+    \label{fig:enter-label}
+\end{figure}
+
+\paragraph{Discrete Residual:}
+The second residual is due \cite{XPINN_generalize}, where they compare the generalizeability of PINNs and XPINNs. We aim to reproduce their results. The residual is given as a discrete form:
+\begin{equation*}
+    f_{disc}(x,y)=
     \begin{cases}
         1 &\text{if} \, (x,y)\in [0.25,0.75]\times[0.25,0.75] \\
         0 &\text{else}.
+        \label{eq:discrete_poisson}
     \end{cases}
 \end{equation*}
 Using our XPINN methodology, we aim to reproduce the results presented by \cite{XPINN_generalize}.
 \subsubsection{Results}
+\paragraph{Continuous Residual:}
+\begin{table}[h]
+\caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the single PINN and our XPINN decomposition. }
+    \centering
+    \begin{tabular}{|l|l l l|}
+    \hline
+     & Median & Minimum & Maximum
+    \\
+    \hline
+    PINN &\(s_{i + 1, j-1}\) & \(s_{i+1, j}\) & \(s_{i + 1, j+1}\)
+    \\
+    XPINN &\(s_{i, j-1}\) & \(s_{i, j}\) & \(s_{i, j+1}\)
+    \\
+    \hline
+    \end{tabular}
+    \label{table:cont_poisson}
+\end{table}
+
 
 \subsection{Navier-Stokes Equation}
 \subsubsection{Problem Formulation}
+Finally, we consider the Navier Stokes problem as described in \textcolor{red}{cite benchmark}. This problem is a simulation of an incompressible 2D fluid flow hitting a cylinder in a rectangle. In the DFG benchmark 2D-1, the PDE conditions are given by:
+\begin{equation}
+    -\nu \nabla^2 \mathbf{u} + (\mathbf{u} \cdot \nabla)\mathbf{u} + \nabla p = \mathbf{0}, \hspace{3mm} \nabla \cdot \mathbf{u} = 0
+\end{equation}
+where $\nu = 0.001$.
 \subsubsection{Results}
+\paragraph{Continuous Residual:} Figure \textcolor{red}{ref} displays the 
