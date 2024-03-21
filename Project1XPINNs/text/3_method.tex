@@ -17,7 +17,7 @@ In the case of advection
 The problem at the heart of machine learning is, in effect, solving \autoref{eq:argmintheta} given a network architecture detailing the sizes and number of hidden layers and the activation functions.
 This is done iteratively through the backpropagation algorithm, wherein the gradient of each layer with respect to the weights are calculated.
 The weights can then be adjusted through e.g. gradient descent, with
-\begin{equation}
+\begin{equation}\label{eq:backprop}
     \boldsymbol{\theta}^{i+1} = \boldsymbol{\theta}^i - \gamma \frac{\partial \mathcal{C}}{\partial \boldsymbol{\theta}},
 \end{equation}
 where $\gamma \in \mathbb{R}_{+}$ is the step size or learning rate.
@@ -45,9 +45,6 @@ We leave discussing the impact this might have had on the development of recent 
 
 Nevertheless, we utilize \textsc{Adam} in our implementation, using the \verb|Optax| \cite{deepmind2020jax} optimization library for \verb|JAX| \cite{jax2018github}.
 
-\subsection{Natural Gradients (?)}
-@Junmiao Hu
-
 \subsection{JAX technicalities}\label{sec:JAX}
 In implementing, we focused on achieving good performance while keeping a certain degree of modularity.
 This simplifies the process of changing key parameters like the subdomain decomposition, or the problem at hand.
@@ -57,7 +54,44 @@ We also lose out on possible problem-specific optimizations, as the program has 
 
 \verb|JAX| serves as an important component, as it allows for efficient matrix / vector operations, which are the most computationally heavy aspect of most machine learning, through just-in-time (jit) compilation.
 Note that \verb|JAX| utilizes 32-bit floating points, which give us a little over 7 digits of precision.
-This limits our possible lowest loss to around $10^{-7}$, rather than the $10^{16}$ expected with 64-bit numbers.
+This limits our possible lowest loss to around $10^{-7}$, rather than the $10^{-16}$ expected with 64-bit numbers.
 
 \subsection{Automatic Differentiation}\label{sec:autodiff}
-Pop off Daniel.
+The backpropagation algorithm \cite{Backpropogation1986} forms the backbone of training a neural network.
+It is the method described in \eqref{eq:backprop}, wherein we take the derivative of the cost function $\mathcal{C}$ with respect to the parameters $\boldsymbol{\theta}$.
+
+$\mathcal{C}$ is a deeply nested function as it involves the realization of the neural network $\mathcal{N}$.
+Differentiating this with respect to each parameter of the network is therefore quite a costly task.
+
+There are in essence three methods for calculating this derivative, namely numerical, symbolic or automatic differentiation.
+Numerical differentiation relies on the method of finite differences, through the approximation
+\begin{equation}
+    f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} \approx \frac{f(x + h) - f(x)}{h},
+\end{equation}
+for small $h$.
+This method can be quite prone to numerical errors, however in a machine learning context this is not a major concern.
+What is concerning however, is the fact that we would need to calculate the derivative with respect to each parameter of the network.
+As we are potentially working with a huge amount of parameters, this is not feasible
+
+Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
+The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
+The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
+Consider as an example the function
+\begin{equation}
+    f(x) = g(x) \cdot h(x),
+\end{equation}
+with derivative
+\begin{equation}
+    f'(x) = g'(x) h(x) + g(x) h'(x).
+\end{equation}
+As a neural network is essentially a deeply nested composite function as described by \eqref{eq:NNreal}, this quickly becomes expensive to compute.
+
+Automatic differentiation tackles this issue through keeping track of terms which repeated through the derivative.
+This can be visualized through considering a nested function through a computational graph.
+
+progger inn masse regler, regner ut ved hjelp av kjerneregelen. boom boom pow, tregt. Lagrer ikke underveis
+
+det som gjør autodiff kjapt er at det lagrer underveis, ved å benytte seg av kjerneregelen mer effektivt. dual numbers. vi benytter oss av jax. 
+
+
+
