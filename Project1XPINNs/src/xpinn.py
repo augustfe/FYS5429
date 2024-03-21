@@ -171,7 +171,6 @@ class XPINN:
             self.optimize_iter(epoch)
 
             iter_loss = sum(self.losses[:, epoch])
-            print("raaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
             if epoch % print_num == 0:
                 print(
                     f"{epoch / num_epoch * 100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
