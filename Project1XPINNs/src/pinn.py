@@ -14,6 +14,7 @@ from type_util import (
 )
 from functools import partial
 
+import pickle
 
 class PINN:
     def __init__(
@@ -142,3 +143,46 @@ class PINN:
 
         prediction = self.v_model(self.params, points)
         return points, prediction
+    
+    def save_model(self, path: str) -> None:
+        """Save the model parameters to a file
+
+        Args:
+            path (str): Path to save the model parameters
+        """
+        #Save optstate
+        optstate_path = path / "optstate.pkl"
+        with open(optstate_path, 'wb') as f:
+            pickle.dump(self.optstate, f)
+
+        #Save params
+        params_path = path / "params.npz"
+
+        kwargs = {}
+        for i, wb_tuple in enumerate(self.params):
+            kwargs[f'weights_{i}'] = wb_tuple[0]  
+            kwargs[f'biases_{i}'] = wb_tuple[1]
+        
+        # Use np.savez to save the arrays in the file
+        np.savez(params_path, **kwargs)
+    
+    def load_model(self, path: str) -> None:
+        """Load the model parameters from a file
+
+        Args:
+            path (str): Path to load the model parameters
+        """
+        #Load optstate
+        optstate_path = path / "optstate.pkl"
+        with open(optstate_path, 'rb') as f:
+            self.optstate = pickle.load(f)
+
+        #Load params
+        params_path = path / "params.npz"
+        params = np.load(params_path)
+
+        wb = []
+        for i in range(len(params.items())):
+            wb.append((params[f'weights_{i}'], params[f'biases_{i}']))
+        
+        self.params = wb
