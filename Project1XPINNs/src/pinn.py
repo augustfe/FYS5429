@@ -185,8 +185,6 @@ class PINN:
         params_path = path / "params.npz"
         params = np.load(params_path)
         
-        print(params.items())
-
         wb = []
         for i in range(len(params.items())//2):
             wb.append((params[f'weights_{i}'], params[f'biases_{i}']))
