@@ -15,6 +15,7 @@ from type_util import (
 from functools import partial
 
 import pickle
+from pathlib import Path
 
 class PINN:
     def __init__(
@@ -151,6 +152,8 @@ class PINN:
             path (str): Path to save the model parameters
         """
         #Save optstate
+        path.mkdir(parents=True, exist_ok=True)
+
         optstate_path = path / "optstate.pkl"
         with open(optstate_path, 'wb') as f:
             pickle.dump(self.optstate, f)
@@ -172,14 +175,17 @@ class PINN:
         Args:
             path (str): Path to load the model parameters
         """
+        path = Path(path)
         #Load optstate
         optstate_path = path / "optstate.pkl"
         with open(optstate_path, 'rb') as f:
             self.optstate = pickle.load(f)
 
         #Load params
-        params_path = path / "params.npz"
+        params_path = path
         params = np.load(params_path)
+        
+        print(params.items())
 
         wb = []
         for i in range(len(params.items())):

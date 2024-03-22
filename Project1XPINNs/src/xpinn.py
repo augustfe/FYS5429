@@ -217,9 +217,6 @@ class XPINN:
     
     def load_model(self, path: str | Path) -> None:
         path = Path(path)
-        
-        if not path.exists():
-            raise FileNotFoundError("The specified path does not exist.")
 
         for i, pinn in enumerate(self.PINNs):
             pinn.load_model(path / f"pinn_{i}")
