@@ -1,4 +1,4 @@
 from pathlib import Path
 
-data_path = Path(__file__).parents[1] / "data"
-fig_path  = Path(__file__).parents[1] / "figures"
+data_path = Path("/home/gaute/Documents/Skole/FYS5429/FYS5429/Project1XPINNs/data")
+fig_path  = Path("/home/gaute/Documents/Skole/FYS5429/FYS5429/Project1XPINNs/figures")
