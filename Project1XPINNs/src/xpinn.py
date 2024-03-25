@@ -214,7 +214,7 @@ class XPINN:
 
         for i, pinn in enumerate(self.PINNs):
             pinn.save_model(path / f"pinn_{i}")
-    
+
     def load_model(self, path: str | Path) -> None:
         path = Path(path)
 
