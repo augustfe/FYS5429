@@ -63,7 +63,8 @@ class XPINN:
 
             for dkey in item:
                 if dkey != "Internal points" and dkey != "Boundary points":
-                    self.main_args[i][dkey] = np.asarray(item[dkey], dtype=np.float32)
+                    self.main_args[i][dkey] = np.asarray(
+                        item[dkey], dtype=np.float32)
 
             self.main_args[i]["boundary"] = boundary
             self.main_args[i]["interior"] = interior
@@ -190,11 +191,13 @@ class XPINN:
             iter_loss = sum(self.losses[:, epoch])
             if epoch % print_num == 0:
                 print(
-                    f"{epoch / num_epoch * 100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
+                    f"{epoch / num_epoch *
+                        100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
                 )
 
         print(
-            f"{(epoch+1) / num_epoch * 100:.2f}% iter = {epoch + 1} of {num_epoch}: Total loss = {iter_loss}"
+            f"{(epoch+1) / num_epoch * 100:.2f}% iter = {epoch +
+                                                         1} of {num_epoch}: Total loss = {iter_loss}"
         )
 
         return np.asarray(self.losses)
