@@ -3,18 +3,11 @@ We implement our domain decomposition framework with flexibility in mind, in ord
 The computational domain, representing the physical and temporal space over which our problem is defined, is partitioned into multiple subdomains.
 
 The subdomains themselves are composed of additive and subtractive polygons and circles, allowing for a wide variety of geometric boundaries.
-The goal of domain decomposition is, among other aspect, division of the total workload required, increasing computational efficiency.
+The goal of domain decomposition is, among other aspects, division of the total workload required, increasing computational efficiency.
 It also offers an avenue for multiprocessing, which can quickly become cumbersome with traditional neural networks.
 
-
-Oppstykker domenet, hvorfor og hvordan
-
-In our implementation, domain decomposition was employed to enhance the scalability and efficiency of our XPINN model. The computational domain, representing the physical space over which our problem is defined, was partitioned into multiple subdomains. This division was based on a predefined configuration detailed in an input JSON file, which described the geometric boundaries of each subdomain and allocated specific internal and boundary points to them.
-
-In the case of advection
-
 \subsection{Adam}
-The problem at the heart of machine learning is, in effect, solving \autoref{eq:argmintheta} given a network architecture detailing the sizes and number of hidden layers and the activation functions.
+The problem at the heart of machine learning is, in effect, solving \eqref{eq:argmintheta} given a network architecture detailing the sizes and number of hidden layers and the activation functions.
 This is done iteratively through the backpropagation algorithm, wherein the gradient of each layer with respect to the weights are calculated.
 The weights can then be adjusted through e.g. gradient descent, with
 \begin{equation}\label{eq:backprop}
@@ -22,9 +15,10 @@ The weights can then be adjusted through e.g. gradient descent, with
 \end{equation}
 where $\gamma \in \mathbb{R}_{+}$ is the step size or learning rate.
 
-It can be shown that for small enough $\gamma$, $\mathcal{C}(\boldsymbol{\theta}^i) \geq \mathcal{C}(\boldsymbol{\theta}^{i+1})$, leading to convergence to a local minima.
+It can be shown that for small enough $\gamma$ we have $\mathcal{C}(\boldsymbol{\theta}^i) \geq \mathcal{C}(\boldsymbol{\theta}^{i+1})$, leading to convergence to a local minima.
 With convex functions, this is sufficient, as a local minima is then also a global minima.
-In a machine learning context this is rarely the case, giving the need for more complex algorithms.
+However, as permuting a layer of neurons and weights in a neural network leads to the same output, they are not convex.
+A number of different optimization algorithms have been devised, often with a focus on tackling the non-convex nature of optimizing the weights of a neural network.
 
 One such method is the Adaptive Moment Estimation (\textsc{Adam}) \cite{kingma2017adam} algorithm, which has grown incredibly popular in recent years.
 The algorithm is defined by
@@ -41,7 +35,9 @@ where $m, v$ are the \nth{1} and \nth{2} moment vectors, initialized to $\boldsy
 This algorithm has effectively become the de facto standard for optimizing neural networks, however it is not without its problems.
 In fact, it can fail to converge even for simple convex functions \cite{reddi2019convergence}, in contradiction to what was claimed in \cite{kingma2017adam}.
 However, \textsc{Adam} has empirically performed well, which is why it grew popular in the first case.
-We leave discussing the impact this might have had on the development of recent methods as an exercise to the reader.
+This might have had an effect on the development of new methods within machine learning, as new methods are typically tested using \textsc{Adam} as the optimizer.
+One might then question if promising methods have been discarded simply because they didn't perform well with \textsc{Adam}, as it might then have been assumed that the method itself was without merit.
+However, discussing this issue in depth falls outside the scope of this paper.
 
 Nevertheless, we utilize \textsc{Adam} in our implementation, using the \verb|Optax| \cite{deepmind2020jax} optimization library for \verb|JAX| \cite{jax2018github}.
 
@@ -53,45 +49,29 @@ High-Performance Computing (HPC) and Object-Oriented Programming (OOP) are two p
 We also lose out on possible problem-specific optimizations, as the program has to work in a wide variety of settings.
 
 \verb|JAX| serves as an important component, as it allows for efficient matrix / vector operations, which are the most computationally heavy aspect of most machine learning, through just-in-time (jit) compilation.
+It also implements automatic differentiation through \verb|grad|, allowing us to compute the necessary derivatives.
 Note that \verb|JAX| utilizes 32-bit floating points, which give us a little over 7 digits of precision.
 This limits our possible lowest loss to around $10^{-7}$, rather than the $10^{-16}$ expected with 64-bit numbers.
 
-\subsection{Automatic Differentiation}\label{sec:autodiff}
-The backpropagation algorithm \cite{Backpropogation1986} forms the backbone of training a neural network.
-It is the method described in \eqref{eq:backprop}, wherein we take the derivative of the cost function $\mathcal{C}$ with respect to the parameters $\boldsymbol{\theta}$.
-
-$\mathcal{C}$ is a deeply nested function as it involves the realization of the neural network $\mathcal{N}$.
-Differentiating this with respect to each parameter of the network is therefore quite a costly task.
-
-There are in essence three methods for calculating this derivative, namely numerical, symbolic or automatic differentiation.
-Numerical differentiation relies on the method of finite differences, through the approximation
+\subsection{Weight initialization}
+We utilize a variant of Xavier initialization \cite{Glorot2010UnderstandingTD}, in order to initialize the weights of the neural networks.
+For $W \in \mathbb{R}^{N_i \times N_{i-1}}$ as in \eqref{eq:A_func}, we draw
 \begin{equation}
-    f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} \approx \frac{f(x + h) - f(x)}{h},
+    W_{ij} \sim N\left(0, \frac{2}{N_i + N_{i-1}} \right),
 \end{equation}
-for small $h$.
-This method can be quite prone to numerical errors, however in a machine learning context this is not a major concern.
-What is concerning however, is the fact that we would need to calculate the derivative with respect to each parameter of the network.
-As we are potentially working with a huge amount of parameters, this is not feasible
+in order to alleviate certain issues.
+If the weights are too large, errors propagate quickly through out the network, while if they are too small we run the risk of vanishing gradients.
+As these issues stem from the relation between the number of neurons in a layer, and their weights, it intuitively makes sense to initialize the weights according to this relation.
 
-Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
-The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
-The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
-Consider as an example the function
+It is designed to work well with $\tanh$ \cite{tanhXavier}, which is our chosen activation function for our implementation.
+It is defined by
 \begin{equation}
-    f(x) = g(x) \cdot h(x),
+    \tanh(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}},
 \end{equation}
-with derivative
-\begin{equation}
-    f'(x) = g'(x) h(x) + g(x) h'(x).
-\end{equation}
-As a neural network is essentially a deeply nested composite function as described by \eqref{eq:NNreal}, this quickly becomes expensive to compute.
+seen in \autoref{fig:tanh}.
 
-Automatic differentiation tackles this issue through keeping track of terms which repeated through the derivative.
-This can be visualized through considering a nested function through a computational graph.
-
-progger inn masse regler, regner ut ved hjelp av kjerneregelen. boom boom pow, tregt. Lagrer ikke underveis
-
-det som gjør autodiff kjapt er at det lagrer underveis, ved å benytte seg av kjerneregelen mer effektivt. dual numbers. vi benytter oss av jax. 
-
-
-
+\begin{figure}[h]
+    \input{Project1XPINNs/text/tikz/tanh_activation}
+    \caption{Tanh activation function, for $x \in [-2, 2]$.}
+    \label{fig:tanh}
+\end{figure}

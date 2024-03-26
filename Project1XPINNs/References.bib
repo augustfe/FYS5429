@@ -33,15 +33,82 @@
   pages={533-536},
   url={https://api.semanticscholar.org/CorpusID:205001834}
 }
+
+% Automatic differentiation
+@misc{autodiff,
+    title = {Automatic Differentiation in Neural Nets},
+    url = {https://mehta-rohan.com/writings/blog_posts/autodiff.html},
+    author = {Rohan Mehta},
+    year = {2021},
+    note = {Accessed on March 22, 2024}
+}
+
+
+@InProceedings{Glorot2010UnderstandingTD,
+  title = 	 {Understanding the difficulty of training deep feedforward neural networks},
+  author = 	 {Glorot, Xavier and Bengio, Yoshua},
+  booktitle = 	 {Proceedings of the Thirteenth International Conference on Artificial Intelligence and Statistics},
+  pages = 	 {249--256},
+  year = 	 {2010},
+  editor = 	 {Teh, Yee Whye and Titterington, Mike},
+  volume = 	 9,
+  series = 	 {Proceedings of Machine Learning Research},
+  address = 	 {Chia Laguna Resort, Sardinia, Italy},
+  month = 	 {13--15 May},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf},
+  url = 	 {https://proceedings.mlr.press/v9/glorot10a.html},
+  abstract = 	 {Whereas before 2006 it appears that deep multi-layer neural networks were not successfully trained, since then several algorithms have been shown to successfully train them, with experimental results showing the superiority of deeper vs less deep architectures. All these experimental results were obtained with new initialization or training mechanisms. Our objective here is to understand better why standard gradient descent from random initialization is doing so poorly with deep neural networks, to better understand these recent relative successes and help design better algorithms in the future.  We first observe the influence of the non-linear activations functions. We find that the logistic sigmoid activation is unsuited for deep networks with random initialization because of its mean value, which can drive especially the top hidden layer into saturation. Surprisingly, we find that saturated units can move out of saturation by themselves, albeit slowly, and explaining the plateaus sometimes seen when training neural networks. We find that a new non-linearity that saturates less can often be beneficial. Finally, we study how activations and gradients vary across layers and during training, with the idea that training may be more difficult when the singular values of the Jacobian associated with each layer are far from 1.  Based on these considerations, we propose a new initialization scheme that brings substantially faster convergence.}
+}
+
+% Llama
+@misc{touvron2023llama,
+      title={LLaMA: Open and Efficient Foundation Language Models}, 
+      author={Hugo Touvron and Thibaut Lavril and Gautier Izacard and Xavier Martinet and Marie-Anne Lachaux and Timothée Lacroix and Baptiste Rozière and Naman Goyal and Eric Hambro and Faisal Azhar and Aurelien Rodriguez and Armand Joulin and Edouard Grave and Guillaume Lample},
+      year={2023},
+      eprint={2302.13971},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+
+% 1.58bit models
+@misc{ma2024era,
+      title={The Era of 1-bit LLMs: All Large Language Models are in 1.58 Bits}, 
+      author={Shuming Ma and Hongyu Wang and Lingxiao Ma and Lei Wang and Wenhui Wang and Shaohan Huang and Li Dong and Ruiping Wang and Jilong Xue and Furu Wei},
+      year={2024},
+      eprint={2402.17764},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL}
+}
+
+@misc{gpt4-parameters,
+    title = {{GPT-4} architecture, datasets, costs and more leaked},
+    author = {Maximilian Schreiner},
+    url = {https://the-decoder.com/gpt-4-architecture-datasets-costs-and-more-leaked/},
+    year = {2023},
+    note = {Accessed on March 24, 2024}
+}
+
 % Natural Gradients
 @misc{müller2023achieving,
-      title={Achieving High Accuracy with PINNs via Energy Natural Gradients}, 
-      author={Johannes Müller and Marius Zeinhofer},
-      year={2023},
-      eprint={2302.13163},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+  author = {Johannes M{\"u}ller and Marius Zeinhofer},
+  title = {Achieving High Accuracy with PINNs via Energy Natural Gradient Descent},
+  abstract = {We propose energy natural gradient descent, a natural gradient method with respect to a Hessian-induced Riemannian metric as an optimization algorithm for physics-informed neural networks (PINNs) and the deep Ritz method. As a main motivation we show that the update direction in function space resulting from the energy natural gradient corresponds to the Newton direction modulo an orthogonal projection onto the model{\textquoteright}s tangent space. We demonstrate experimentally that energy natural gradient descent yields highly accurate solutions with errors several orders of magnitude smaller than what is obtained when training PINNs with standard optimizers like gradient descent, Adam or BFGS, even when those are allowed significantly more computation time. We show that the approach can be combined with deterministic and stochastic discretizations of the integral terms and with deep networks allowing for an application in higher dimensional settings.},
+  year = {2023},
+  journal = {International Conference on Machine Learning (ICML)},
+  publisher = {PMLR},
 }
+
+% Learning rate free
+@misc{sharrock2023learning,
+      title={Learning Rate Free Sampling in Constrained Domains}, 
+      author={Louis Sharrock and Lester Mackey and Christopher Nemeth},
+      year={2023},
+      eprint={2305.14943},
+      archivePrefix={arXiv},
+      primaryClass={stat.ML}
+}
+
 
 %XPINNs
 @article{Jagtap2020ExtendedPN,
@@ -98,6 +165,8 @@
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 
+
+
 %APINNs, XPINNs son
 @article{Hu_2023,
    title={Augmented Physics-Informed Neural Networks (APINNs): A gating network-based soft domain decomposition methodology},
@@ -143,6 +212,22 @@
   url = {http://github.com/google/jax},
   version = {0.3.13},
   year = {2018},
+}
+
+@misc{StanfordXavier,
+    author = {Andrew Ng},
+    title = {Section 4 (Week 4): {X}avier {I}nitialization and {R}egularization},
+    url = {https://cs230.stanford.edu/section/4/},
+    year = {2023},
+    note = {Accessed on March 24, 2024},
+}
+
+@misc{tanhXavier,
+    author = {Kian Katanforoosh and Daniel Kunin},
+    title = {Initializing neural networks},
+    url = {https://www.deeplearning.ai/ai-notes/initialization/index.html},
+    year = {2019},
+    note = {Accessed on March 24, 2024},
 }
 
 %%%%%%%%%%%%%%%%%  Published scientific articles  %%%%%%%%%%%%%%%%%%%

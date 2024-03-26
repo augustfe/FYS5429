@@ -3,7 +3,7 @@ Neural networks are built upon a simplified understanding of how the neurons in 
 Feed-forward neural networks typically model this by passing an input through a composition of linear transformations and non-linear activation functions.
 In a so-called \textit{feed-forward pass}, the input values $\boldsymbol{x} \in \mathbb{R}^{N_0}$ are sent to each neuron in the next layer, multiplied by a predetermined weight along the way with a value added called the bias $\boldsymbol{b} \in \mathbb{R}^{N_1}$.
 We represent this through the function $\mathcal{A} : \mathbb{R}^{N_{i-1}} \to \mathbb{R}^{N_{i}}$ defined by
-\begin{equation}
+\begin{equation}\label{eq:A_func}
     \mathcal{A}_i(\boldsymbol{x}) = W_i \boldsymbol{x} + \boldsymbol{b}_i,
 \end{equation}
 where $W \in \mathbb{R}^{N_i \times N_{i-1}}$ is the weight matrix, where the $N_i$ is the number of neurons in layer $i$.
@@ -17,15 +17,15 @@ This process is illustrated in \autoref{fig:SimpleFFNN}.
 \begin{figure}[h]
 \centering
 \input{Project1XPINNs/text/tikz/neuralnet}
-\caption{Illustration of a fully connected feed-forward neural network with an input layer (red), two hidden layers (blue) and an output layer (orange).}
+\caption{Illustration of a fully connected feed-forward neural network with an input layer (teal), two hidden layers (purple) and an output layer (beige).}
 \label{fig:SimpleFFNN}
 \end{figure}
 
-Let $\boldsymbol{\theta} = \{ W_i, \boldsymbol{b}_i \}_{i = 1}^L$ represent the trainable parameters of the network in the parameter space $\mathcal{V}$, and $\mathcal{N}_{\boldsymbol{\theta}} : \mathbb{R}^{N_0} \to \mathbb{R}^{N_L}$ denote the realization of a neural network with $L$ layers, defined by
-\begin{equation}
-\begin{split}\label{eq:NNreal}
+Let $\boldsymbol{\theta} = \{ W_i, \boldsymbol{b}_i \}_{i = 1}^L$ represent the trainable parameters of the network in the parameter space $\mathcal{V}$, and $\mathcal{N}_{\boldsymbol{\theta}} : \mathbb{R}^{N_0} \to \mathbb{R}^{N_L}$ denote the realization of a neural network with $L$ layers, defined through the composition
+\begin{equation}\label{eq:NNreal}
+\begin{split}
     \mathcal{N}_{\boldsymbol{\theta}} &= \sigma_L \circ \mathcal{A}_L \circ \sigma_{L-1} \circ \ldots \circ \sigma_{1} \circ \mathcal{A}_1 \\
-    &= \bigcirc_{i = 1}^L \sigma_i \circ \mathcal{A}_i.
+    &= \compfunc_{i = 1}^L \sigma_i \circ \mathcal{A}_i.
 \end{split}
 \end{equation}
 We call the parameters trainable, as we typically initialize them to random values, \textit{training} them through optimization with the help of the backpropagation algorithm.
@@ -48,51 +48,53 @@ The theorem does however guarantee the validity of at least attempting to utiliz
 \subsection{Partial Differential Equations}
 A Partial Differential Equation (PDE) is defined to be an equation containing a function with at least two different variables, as well as some degree of partial derivatives to these variables.
 PDEs are ubiquitous in describing the properties, behavior, and evolution of physical systems.
-A prime example is Poisson’s equation, which is of broad utility within theoretical physics. It is defined by
-\begin{equation*}
-    u_{xx} + u_{yy} = f \text{ on }\Omega,
-\end{equation*}
-where the residual $f$ is independent of $u$, and your domain $\Omega \in \mathbb R ^d$, where d is your number of dimensions, including a possible temporal dimension. 
 
 An important concept when discussing PDEs is differential operators.
-A differential operator is defined as a function of the differentiation operator.
+A differential operator is defined as a function performing some sort of differentiation on the function it is applied to.
 It is indeed a function from a function space $\mathcal{F}_1$ to another function space $\mathcal{F}_2$.
 In the case of a function of $n$ variables $u(x_1, x_2, \ldots , x_n)$ the usual differential operator is defined as 
 \begin{equation*}
     D^\alpha u = \frac{\partial u^{|\alpha|}}{\partial x_1^{\alpha_1} \partial x_2^{\alpha_2} \cdots \partial x_n^{\alpha_n}},
 \end{equation*}
 where $|\alpha| = \alpha_1 + \alpha_2 + \ldots + \alpha_n$.
-When considering a function $u(x,y)$, we will denote $\frac{\partial u}{\partial x}$ as $u_x$, $\frac{\partial^2 u}{\partial x^2}$ as $u_{xx}$, $\frac{\partial u}{\partial y}$ as $u_y$ and so on.
+When considering a function $u(x,y)$, we will denote $\frac{\partial u}{\partial x}$ as $u_x$, $\frac{\partial^2 u}{\partial x^2}$ as $u_{xx}$, and so on.
 We will when discussing general PDEs denote the differential operator characterizing the PDE by $\mathcal{L}$.
-For example, for the Poisson equation mentioned above, we have $\mathcal{L}u = u_{xx} + u_{yy}$, and denote the equation as $\mathcal{L}u=f$.
-We will also come across the differential operator $\nabla$ (nabla).
-For a problem in three physical dimensions, nabla is defined as $\nabla = \frac{\partial}{\partial x}\boldsymbol{x} + \frac{\partial}{\partial y}\boldsymbol{y} + \frac{\partial}{\partial z}\boldsymbol{z}$, where $\boldsymbol{x},\boldsymbol{y},\boldsymbol{z}$ are the three-dimensional Euclidean unit vectors.
 
-When considering time-dependent PDEs for physical problems, we frequently require initial- and boundary conditions.
-Initial conditions are conditions for values at $t=0$, and boundary conditions are value conditions at the physical boundary of the problem. Thus, both conditions are defined on the boundary $\partial\Omega$ of our spatial-temporal domain, and we treat them similarly.
-In this paper we encounter Dirichlet-type boundary conditions (also referred to as first-type boundary conditions), that is when the value of the function on the boundary is given.
+An example of a PDE is Poisson's equation, defined by
+\begin{equation*}
+    u_{xx} + u_{yy} = f \text{ on }\Omega,
+\end{equation*}
+where the residual $f$ is independent of $u$, on the domain $\Omega \in \mathbb{R}^d$, where $d$ is the number of dimensions, including a possible temporal dimension.
+For this equation, we have $\mathcal{L}u = u_{xx} + u_{yy}$, so that the equation can be denoted succinctly as $\mathcal{L}u = f$.
+
+We will also come across the differential operator $\nabla$.
+For a problem in three physical dimensions, $\nabla$ is defined as $\nabla = \frac{\partial}{\partial x}\boldsymbol{x} + \frac{\partial}{\partial y}\boldsymbol{y} + \frac{\partial}{\partial z}\boldsymbol{z}$, where $\boldsymbol{x},\boldsymbol{y},\boldsymbol{z}$ are the three-dimensional Euclidean unit vectors.
+
+When considering time-dependent PDEs for physical problems, we frequently require initial and boundary conditions.
+Initial conditions are conditions for values at $t=0$, and boundary conditions are value conditions on the physical boundaries of the problem.
+Thus, both conditions are defined on the boundary $\partial\Omega$ of our spatial-temporal domain, and we treat them similarly.
+In this paper we encounter Dirichlet-type boundary conditions (also referred to as first-type boundary conditions), where the value of the function on the boundary is given.
 We return to the Poisson equation as an example;
-we have for the function $u(x,y)$, $(x,y) \in [0,1]\times [0,1]$ the boundary conditions $u(0,y)=u(1,y)=u(x,0)=u(x,1) = 0$.
+we have for the function $u(x,y)$, $(x,y) \in [0,1]\times [0,1]$, the boundary conditions $u(0,y)=u(1,y)=u(x,0)=u(x,1) = 0$.
 Another important is Neumann (or second-type) boundary conditions.
-This is when the boundary conditions gives the value of the first order derivative of in the direction normal to the boundary. 
+This is when the boundary conditions gives the value of the first order derivative in the direction normal to the boundary. 
 
-To capture these boundary conditions, we introduce a boundary value operator $\mathcal B$ such that we can write $\mathcal B u = g \text{ on }\partial \Omega$ for all our boundary conditions, for some function $g$ on the boundary $\partial\Omega$.
-
-Given the PDE operator $\mathcal L$ and the boundary value operator $\mathcal B$, we present the general form of a PDE as:
+To capture these boundary conditions, we introduce a boundary value operator $\mathcal B$ such that we can write $\mathcal B u = g$ on $\partial \Omega$ for all our boundary conditions, for some function $g$ on the boundary $\partial\Omega$.
+Given the PDE operator $\mathcal L$ and the boundary value operator $\mathcal B$, we present the general form of a PDE as
 \begin{equation}
 \begin{cases}
-    \mathcal{L}u &= f \textbf{ in }\Omega,\\
-    \mathcal{B}u &= g \textbf{ in }\partial\Omega,    
+    \mathcal{L}u = f &\text{in } \Omega,\\
+    \mathcal{B}u = g &\text{in } \partial\Omega.
 \end{cases}
 \label{eq:PDE}
 \end{equation}
 
 \subsection{Physics-Informed Neural Networks}
 Physics-Informed Neural Networks (PINNs) incorporate the inherent physical constraints of a problem directly into the network.
-One such way is to bake in the PDE conditions of a problem directly into the loss function of the network \cite{RAISSI2019686}
+One such way is to bake in the PDE conditions of a problem directly into the loss function of the network \cite{RAISSI2019686}.
 In doing so, we coerce the network into predicting results which adhere to the inherent physical laws.
 In this way, we reduce the need for labeled data, and are able to be more confident in the predictions of our network.
-Our neural network $\mathcal{N}_{\boldsymbol{\theta}}$ can then be regarded as an approximation of the hidden function $u$, notating it as $u^*$.
+Our neural network $\mathcal{N}_{\boldsymbol{\theta}}$ can then be regarded as an approximation of the hidden function $u$, denoting it as $u^*$.
 
 We then measure the loss through
 \begin{equation}\label{eq:PINNMSE}
@@ -110,18 +112,25 @@ where
 In this case, $(x_d^i,u_d^i)_{i=1}^{N_d}$ is a sample of data, $u_0^i$ is our initial condition, and $N_d,N_0,N_u,N_f$ is the number of data-, initial-, boundary-, and residual points on which the loss is calculated respectively. 
 With this baseline, one can extend the loss function through appending more terms, if there are other conditions, such as periodicity, one would like to enforce.
 Note that in $\MSE_f$, we are taking the derivative of the network itself with respect to its output.
-This is done through the use of automatic differentiation, in much the same way the parameters are optimized.
+This is done through the use of automatic differentiation, in much the same way the parameters are optimized, described further in \autoref{sec:autodiff}.
 
 
 The total process of applying machine learning techniques can then be quite beneficial, as the process of accruing data, whether that be with measurements, numerically or analytically, can be extremely costly.
+The $\MSE_d$ can also be dropped, leading to unsupervised training, however this can lead to worse results overall.
 In addition, with a framework already set up, the process of setting up a PINN is quite simple, in contrast to developing a numerical algorithm.
 
 \subsection{Extended Physics-Informed Neural Networks}
 Extended Physics-Informed Neural Networks (XPINNs), is a generalized space-time domain decomposition algorithm for PINNs initially proposed in \textcite{Jagtap2020ExtendedPN}.
-The key idea is to decompose the domain $\Omega$ into several sub-domains $(\Omega_s)_s^N$ such that $\bigcup_{s=1}^{N_\mathrm{sd}}\Omega_s=\Omega$.
-\textcolor{red}{NEED FIGURE}.
+The key idea is to decompose the domain $\Omega$ into several subdomains $(\Omega_s)_s^N$ such that $\bigcup_{s=1}^{N_\mathrm{sd}}\Omega_s=\Omega$, as illustrated in \autoref{fig:subdomain_comp}.
 The domain interfaces are given by $\Omega_i\cap \Omega_j = \partial\Omega_{ij},\, i\neq j$.
-Each sub-domain is then equipped with its own sub-PINN $u^*_s$, and the training and test points associated with its subdomain. 
+Each subdomain is then equipped with its own sub-PINN $u^*_s$, and the training and test points associated with its subdomain.
+
+\begin{figure}[h]
+\centering
+\input{Project1XPINNs/text/tikz/subdomain_decomp}
+\caption{Domain decomposition of $\Omega$ into three subdomains $\Omega_i$, with dashed lines representing the interfaces $\partial \Omega_{ij}$. Each subdomain is equipped with its own unique PINN. }
+\label{fig:subdomain_comp}
+\end{figure}
 
 Given such a domain decomposition, we now consider the following XPINN solution to our PDE problems:
 \begin{equation}\label{eq:XPINN}
@@ -151,11 +160,11 @@ For a single PINN, we amend the loss function with
 \end{equation}
 where $\{u_I^i\}$ is the average predicted value at the interface from each PINN, and $N_I$ is the number of points on the interface. 
 
-\subsubsection{Use case of XPINNs}
+% \subsubsection{The use case of XPINN}
 Like traditional domain decomposition algorithms, XPINNs introduce an intuitive parallelization by separating the domain into several subdomains with their own respective neural network where the subdomain solutions can be computed on independent processors.
 Thus, XPINNs might improve the computational efficiency through improved utilization of the processor architecture in a computer.
 
-Moreover, \cite{Jagtap2020ExtendedPN} argue that XPINNs also introduce architectural flexibility into our problem.
+Moreover, \textcite{Jagtap2020ExtendedPN} argue that XPINNs also introduce architectural flexibility into our problem.
 For instance, we might employ a deep network in a subdomain with complex solution, whereas we can apply a shallow network for a subdomain with relatively simple and smooth solutions. 
 
 However, the domain decomposition introduces a tradeoff for generalization.
@@ -165,8 +174,77 @@ However, in an unsupervised setting, the computational load can be balanced thro
 For a more rigorous analysis of when XPINNs improve generalization, we refer the reader to \cite{XPINN_generalize}.
 
 Furthermore, the interface conditions also introduce complications to the loss function, changing the loss landscape.
-Thus, it is easy to imagine instances where for instance the loss landscape of interface loss and boundary loss are different, resulting in an optimization dilemma of which condition to prioritize.
+Thus, it is easy to imagine instances where for instance the loss landscapes of interface loss and boundary loss are different, resulting in an optimization dilemma of which condition to prioritize.
 Moreover, changing the loss function through interface conditions might also correspond to altering the PDE problem equation.
 To the extent of the authors' knowledge, there is not a clear theoretical understanding of how the interface conditions alter the solution to our PDE problem. 
+
+\subsection{Automatic Differentiation}\label{sec:autodiff}
+The backpropagation algorithm \cite{Backpropogation1986} forms the backbone of training a neural network.
+It is the method described in \eqref{eq:backprop}, wherein we take the derivative of the cost function $\mathcal{C}$ with respect to the parameters $\boldsymbol{\theta}$.
+
+$\mathcal{C}$ is a deeply nested function as it involves the realization of the neural network $\mathcal{N}$.
+Differentiating this with respect to each parameter of the network is therefore quite a costly task.
+
+There are in essence three methods for calculating this derivative, namely numerical, symbolic or automatic differentiation.
+Numerical differentiation relies on the method of finite differences, through the approximation
+\begin{equation}
+    f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} \approx \frac{f(x + h) - f(x)}{h},
+\end{equation}
+for small $h$.
+This method can be quite prone to numerical errors, however in a machine learning context this is not a major concern.
+What is concerning however, is the fact that we would need to calculate the derivative with respect to each parameter of the network.
+As we are potentially working with a huge amount of parameters, this is not feasible
+
+Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
+The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
+The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
+Consider as an example the function
+\begin{equation}
+    f(x) = g(x) \cdot h(x),
+\end{equation}
+with derivative
+\begin{equation}
+    f'(x) = g'(x) h(x) + g(x) h'(x).
+\end{equation}
+As a neural network is essentially a deeply nested composite function as described by \eqref{eq:NNreal}, this quickly becomes expensive to compute.
+
+Automatic differentiation tackles this issue through keeping track of which terms are repeated throughout the computation.
+Consider an extremely simple neural network, with one input and no hidden layer.
+The output $y$ is then simply computed as
+\begin{equation}\label{eq:supersimple_NN}
+    y = \sigma \left( x \cdot w + b \right),
+\end{equation}
+for an input $x$, weight $w$, bias $b$, and activation function $\sigma$.
+The computational graph associated with this is illustrated in \autoref{fig:forward_compgraph}, with $\alpha, \beta, \gamma, \varepsilon$ representing the intermediate values.
+
+\begin{figure}[h]
+\centering
+\input{Project1XPINNs/text/tikz/forward_autodiff}
+\caption{Computational graph of a feed forward pass of a simple neural network as in \eqref{eq:supersimple_NN}, adapted from \cite{autodiff}.}
+\label{fig:forward_compgraph}
+\end{figure}
+
+Say we are interested in computing the derivative of $y$ with respect to the bias $b$, $\frac{\partial y}{\partial b}$.
+As $y$ is not directly dependent on $b$, we compute the derivatives backward, as illustrated in \autoref{fig:backward_compgraph}, through extensive utilization of the chain rule.
+We compute the derivatives with respect to each intermediate function through the chain rule, as
+\begin{equation}
+    \frac{\partial \varepsilon}{\partial b} = \frac{\partial \beta}{\partial b} \frac{\partial \varepsilon}{\partial \beta} = 
+    \frac{\partial \beta}{\partial b}
+    \frac{\partial \gamma}{\partial \beta}
+    \frac{\partial \varepsilon}{\partial \gamma}.
+\end{equation}
+For one derivative, this is not particularly impressive.
+
+\begin{figure}[h]
+\centering
+\input{Project1XPINNs/text/tikz/backward_autodiff}
+\caption{Automatic differentiation of a feed forward pass of a simple neural network as in \eqref{eq:supersimple_NN}, adapted from \cite{autodiff}.}
+\label{fig:backward_compgraph}
+\end{figure}
+
+However, if we are next interested in computing the derivatives with respect to the other variables, we already have $\frac{\partial \varepsilon}{\partial \beta}$ computed.
+This memoization is the reason automatic differentiation is able to compute derivatives efficiently, especially for functions with a larger number of inputs or outputs, e.g. a neural network with a large number of parameters.
+
+
 
 
