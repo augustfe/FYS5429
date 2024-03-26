@@ -63,11 +63,10 @@ class XPINN:
 
             for dkey in item:
                 if dkey != "Internal points" and dkey != "Boundary points":
-                    self.main_args[i][dkey] = np.asarray(
-                        item[dkey], dtype=np.float32)
+                    self.main_args[i][dkey] = np.asarray(item[dkey], dtype=np.float32)
 
-            self.main_args[i]['boundary'] = boundary
-            self.main_args[i]['interior'] = interior
+            self.main_args[i]["boundary"] = boundary
+            self.main_args[i]["interior"] = interior
 
             key, subkey = random.split(key)
             new_PINN = PINN(interior, boundary, activation, key)
@@ -214,7 +213,7 @@ class XPINN:
 
         for i, pinn in enumerate(self.PINNs):
             pinn.save_model(path / f"pinn_{i}")
-    
+
     def load_model(self, path: str | Path) -> None:
         path = Path(path)
 
