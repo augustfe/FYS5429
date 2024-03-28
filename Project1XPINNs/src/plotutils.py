@@ -74,7 +74,7 @@ def plot_losses(
     plt.yscale("log")
     plt.legend()
     plt.title(title)
-    save_name = title.replace(" ", "_")
+    save_name = title.replace(" ", "_").replace("$", "").replace("\\", "")
     plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
     plt.show()
     # plt.title(f"Loss per Pinn over {n_iter} epochs")
