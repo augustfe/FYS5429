@@ -21,9 +21,7 @@ def random_layer_params(
         tuple[Array, Array]: Initialized weights and biases
     """
     w_key, b_key = random.split(key)
-    return scale * random.normal(
-        w_key, (n, m), dtype=np.float64
-    ), scale * random.normal(b_key, (n,), dtype=np.float64)
+    return scale * random.normal(w_key, (n, m)), scale * random.normal(b_key, (n,))
 
 
 def init_network_params(sizes: Shape, key: int) -> Params:
@@ -41,7 +39,7 @@ def init_network_params(sizes: Shape, key: int) -> Params:
     """
     keys = random.split(key, len(sizes))
     return [
-        random_layer_params(m, n, k, np.sqrt(2 / (m + n)))#random_layer_params(m, n, k, np.sqrt(1 / m))
+        random_layer_params(m, n, k, np.sqrt(2 / (m + n)))
         for m, n, k in zip(sizes[:-1], sizes[1:], keys)
     ]
 

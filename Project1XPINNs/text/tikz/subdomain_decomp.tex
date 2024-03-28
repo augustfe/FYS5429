@@ -1,0 +1,32 @@
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+
+\coordinate (Top) at (283.69,109.1);
+\coordinate (Left) at (215.67,163);
+\coordinate (Bottom) at (298.76,211.69);
+\coordinate (Middle) at (275.54,163.47);
+
+\fill[purple!40] (Left) .. controls (240.17,154.14) and (260.97,154.24) .. (Middle) .. controls (290.11,172.69) and (297.8,187.76) .. (Bottom) .. controls (274.65,214.78) and (245.16,212.25) .. (232.3,204.34) .. controls (220.65,197.17) and (215.83,179.98) .. (Left) -- cycle;
+
+\fill[orange!20] (Left) .. controls (215.47,142.06) and (222.36,121.44) .. (232.3,120.34) .. controls (240.46,119.43) and (262.42,112.76) .. (Top) .. controls (293.69,127.1) and (300.54,135.47) .. (Middle) .. controls (260.97,154.24) and (240.17,154.14) .. (Left) -- cycle;
+
+\fill[teal!35] (Top) .. controls (309.31,104.7) and (333.94,104.67) .. (332.3,124.34) .. controls (329.3,160.34) and (312.3,154.34) .. (332.3,184.34) .. controls (342.4,199.5) and (323.39,208.53) .. (Bottom) .. controls (297.8,187.76) and (290.11,172.69) .. (Middle) .. controls (300.54,135.47) and (293.69,127.1) .. (Top) -- cycle;
+
+\draw [thick]  (232.3,120.34) .. controls (240.46,119.43) and (262.42,112.76) .. (283.69,109.1) .. controls (309.31,104.7) and (333.94,104.67) .. (332.3,124.34) .. controls (329.3,160.34) and (312.3,154.34) .. (332.3,184.34) .. controls (342.4,199.5) and (323.39,208.53) .. (298.76,211.69) .. controls (274.65,214.78) and (245.16,212.25) .. (232.3,204.34) .. controls (220.65,197.17) and (215.83,179.98) .. (215.67,163) .. controls (215.47,142.06) and (222.36,121.44) .. (232.3,120.34) -- cycle ;
+%Curve Lines [id:da968003923864855] 
+\draw  [dashed]  (215.67,163) .. controls (240.17,154.14) and (260.97,154.24) .. (275.54,163.47) .. controls (290.11,172.69) and (297.8,187.76) .. (298.76,211.69) ;
+%Curve Lines [id:da35316263230503897] 
+\draw  [dashed]  (283.69,109.1) .. controls (293.69,127.1) and (300.54,135.47) .. (275.54,163.47) ;
+
+% \node (A) at (Left) {};
+% \node [rotate=-25, xshift=-0.5cm] (B) [left of=A] {Interface};
+% \draw [thick,->] (B) edge (A);
+\node [yshift=0.25cm] (C) at (Top) {$\Omega$};
+
+% Text Node
+\draw (244,176.4) node [anchor=north west][inner sep=0.75pt]    {$\Omega _{1}$};
+% Text Node
+\draw (296,153.4) node [anchor=north west][inner sep=0.75pt]    {$\Omega _{3}$};
+% Text Node
+\draw (245,126.4) node [anchor=north west][inner sep=0.75pt]    {$\Omega _{2}$};
+
+\end{tikzpicture}

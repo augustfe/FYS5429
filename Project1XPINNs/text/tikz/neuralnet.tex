@@ -1,12 +1,12 @@
 \def\layersep{2.5cm}
 \def\nodeinlayersep{1.2cm}
-\begin{tikzpicture}[shorten >=1pt,->,draw=black!50, node distance=\layersep]
+\begin{tikzpicture}[shorten >=1pt,->, node distance=\layersep]
     \tikzstyle{every pin edge}=[<-,shorten <=1pt]
-    \tikzstyle{neuron}=[circle, fill=black!25,minimum size=20pt,inner sep=0pt]
-    \tikzstyle{input neuron}=[neuron, fill=red!50];
-    \tikzstyle{output neuron}=[neuron, fill=orange!50];
-    \tikzstyle{hidden neuron}=[neuron, fill=blue!50, minimum size=20pt];
-    \tikzstyle{hidden neuron2}=[neuron, fill=blue!50, minimum size=20pt];
+    \tikzstyle{neuron}=[draw, circle, fill=black!25,minimum size=20pt,inner sep=0pt]
+    \tikzstyle{input neuron}=[neuron, fill=teal!35];
+    \tikzstyle{output neuron}=[neuron, fill=orange!20];
+    \tikzstyle{hidden neuron}=[neuron, fill=purple!50, minimum size=20pt];
+    \tikzstyle{hidden neuron2}=[neuron, fill=purple!50, minimum size=20pt];
 
     \foreach \name / \y in {0,...,2}
         \node[input neuron] (I-\name) at (0,-\y) {};
