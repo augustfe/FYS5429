@@ -23,7 +23,7 @@ if __name__ == '__main__':
     v_model = vmap(model, (None, 0))
 
     ### Set RHS
-    def eval(x):
+    def eval_rhs(x):
         a = 0
         if 0.25<=x[0]<=0.75 and 0.25<=x[1]<=0.75:
             a=1
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         points=xpinn.PINNs[0].interior
         f=onp.zeros_like(points)
         for i,point in enumerate(points):
-            f[i] = eval(point)
+            f[i] = eval_rhs(point)
         return np.array(f)
 
     rhs = f()

@@ -23,7 +23,7 @@ if __name__ == '__main__':
     v_model = vmap(model, (None, 0))
 
     ### Set RHS
-    def eval(x):
+    def eval_rhs(x):
         a = 0
         if 0.25<=x[0]<=0.75 and 0.25<=x[1]<=0.75:
             a=1
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         points=xpinn.PINNs[0].interior
         f=onp.zeros_like(points)
         for i,point in enumerate(points):
-            f[i] = eval(point)
+            f[i] = eval_rhs(point)
         return np.array(f)
 
     rhs = f()
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     total_pred = np.concatenate(predictions)
 
     # Getting true value
-    ### TODO : Need to implement truevalue
+    ### TODO : Need to implement trueval_rhsue
     
     #u_vmap = vmap(u_star, (0))
     #true_value = u_vmap(total_points).reshape(-1, 1)
