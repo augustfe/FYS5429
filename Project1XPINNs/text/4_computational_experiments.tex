@@ -96,7 +96,7 @@ Using our XPINN methodology, we aim to reproduce the results presented by \textc
 
 \subsubsection{Results}
 \paragraph{Continuous Residual:}
-\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. Note that the mesh was re-generated between each iteration. Figure
+\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. Note that the mesh was re-generated between each experiment. \autoref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the number of epochs.
 \begin{table}[h]
 \caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the single PINN and our XPINN decomposition. }
     \centering
@@ -113,6 +113,12 @@ Using our XPINN methodology, we aim to reproduce the results presented by \textc
     \end{tabular}
     \label{table:cont_poisson}
 \end{table}
+\begin{figure}
+    \centering
+    \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Relative_L2_smooth_Adam.png}
+    \caption{}
+    \label{fig:rel_l2_smooth_poisson}
+\end{figure}
 
 
 \subsection{Navier-Stokes Equation}
