@@ -14,7 +14,7 @@ where $\alpha = 0.5$, and the initial condition $f$ is defined by
 \begin{equation*}
     f(x) =
     \begin{cases}
-        1 &\text{if} \, x \in [-0.2, 0.2] \\
+        1 &\text{if} \quad x \in [-0.2, 0.2] \\
         0 &\text{else}.
     \end{cases}
 \end{equation*}
@@ -23,12 +23,23 @@ By the method of characteristics, the analytical solution is:
 \begin{equation}
     u(x,t) = u_0(x-\alpha t)=
     \begin{cases}
-        1 &\text{if} \, x \in [-0.2 + \alpha t, 0.2 + \alpha t] \\
+        1 &\text{if } \quad x \in [-0.2 + \alpha t, 0.2 + \alpha t] \\
         0 &\text{else}.
     \end{cases}
 \end{equation}
 
-Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in figure \textcolor{red}{Insert citation}.
+Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in figure 
+\begin{figure*}[t]
+    % \centering
+    \subfloat[PINN]{
+    \includegraphics[width=0.48\textwidth]{Project1XPINNs/figures/Poisson/}
+    \label{subfig:single}
+    }
+    \caption{Example training points for the Poisson problem for a single PINN across the domain (left) and an XPINN where we have on PINN confined in the square $[0.25, 0.75]\times [0.25, 0.75]$ and the other for the remaining points. In both cases, we define 900 internal points and 120 boundary points. For the XPINN, we define an additional 80 interface points.}
+    \label{fig:decomp_poisson}
+\end{figure*}
+
+\textcolor{red}{Insert citation}.
 In order to verify that our method is not simply learning the decomposition itself, we also verify that the wave is able to travel across the interfaces by setting $\alpha = 1$ while keeping the same decomposition.
 
 Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer.
@@ -113,7 +124,7 @@ Using our XPINN methodology, we aim to reproduce the results presented by \textc
     \end{tabular}
     \label{table:cont_poisson}
 \end{table}
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Relative_L2_smooth_Adam.png}
     \caption{}
