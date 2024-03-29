@@ -6,6 +6,9 @@ from type_util import Array
 from xpinn import XPINN
 from jax import vmap, lax
 
+# Set the default DPI to another value (e.g., 300)
+plt.rcParams["figure.dpi"] = 300
+
 
 # Set up for LaTeX rendering
 mpl.rcParams["mathtext.fontset"] = "stix"
@@ -114,7 +117,7 @@ def compare_analytical_advection(
     plt.ylabel("$t$")
     scatter1.set_clim(0, errors.max())
     plt.colorbar(scatter1)  # Add one colorbar based on the errors
-    plt.savefig(savepath / f"{alpha}_error.pdf", bbox_inches="tight")
+    plt.savefig(savepath / f"{alpha}_error.png", bbox_inches="tight", dpi=300)
     plt.show()
 
     # Scatter plot for predictions
@@ -126,7 +129,7 @@ def compare_analytical_advection(
     plt.ylabel("$t$")
     scatter2.set_clim(total_pred.min(), total_pred.max())
     plt.colorbar(scatter2)  # Add one colorbar based on the predictions
-    plt.savefig(savepath / f"{alpha}_predictions.pdf", bbox_inches="tight")
+    plt.savefig(savepath / f"{alpha}_predictions.png", bbox_inches="tight", dpi=300)
     plt.show()
 
 
