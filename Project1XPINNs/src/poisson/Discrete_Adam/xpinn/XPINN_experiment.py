@@ -9,6 +9,10 @@ from tqdm import tqdm
 from utils import data_path
 from base_network import neural_network
 from poisson.poisson_utils import boundary_loss_factory, interior_loss_factory, crude_rel_L2, interface_loss_factory
+
+def rhs(x):
+    return np.where((x[0]>= 0.25) &(x[0]<=0.75)&(x[1]>= 0.25) &(x[1]<=0.75), -1,0)
+
 if __name__ == '__main__':
     ### Set files
     name = str(sys.argv[1])
@@ -23,15 +27,15 @@ if __name__ == '__main__':
 
     # Set losses
     p0, p1 = xpinn.PINNs
-    p0.boundary_loss = boundary_loss_factory(p0,0.0)
-    p0.interior_loss = interior_loss_factory(p0, 0.0)  # implementing rhs
-    p1.interior_loss = interior_loss_factory(p1, 1.0)
-    p0.interface_loss = interface_loss_factory(xpinn,0, 1)
-    p1.interface_loss = interface_loss_factory(xpinn,1, 0)
+    p0.boundary_loss = boundary_loss_factory(p0,0.0, weight=20)
+    p0.interior_loss = interior_loss_factory(p0, rhs)  # implementing rhs
+    p1.interior_loss = interior_loss_factory(p1, rhs)
+    p0.interface_loss = interface_loss_factory(xpinn,0, 1, weight=20)
+    p1.interface_loss = interface_loss_factory(xpinn,1, 0, weight=20)
 
 
     ### Initializing optimizer
-    shapes = [[2] + [64] + [1],[2] + [64] + [64] + [1]]
+    shapes =[[2, 20, 20, 20, 20, 20, 20, 20, 1],[2, 20, 20, 20, 20, 20, 20, 20, 1]]
     exponential_decay = optax.exponential_decay(
             init_value=0.001,
             transition_steps=10000,

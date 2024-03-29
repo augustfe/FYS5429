@@ -10,18 +10,8 @@ from utils import data_path
 from base_network import neural_network
 from poisson.poisson_utils import boundary_loss_factory, interior_loss_factory, crude_rel_L2
 
-def eval_rhs(x):
-    a = 0
-    if 0.25<=x[0]<=0.75 and 0.25<=x[1]<=0.75:
-        a=1
-    return a
-
-def f():
-    points=xpinn.PINNs[0].interior
-    f=onp.zeros_like(points)
-    for i,point in enumerate(points):
-        f[i] = eval_rhs(point)
-    return np.array(f)
+def rhs(x):
+    return np.where((x[0]>= 0.25) &(x[0]<=0.75)&(x[1]>= 0.25) &(x[1]<=0.75), -1,0)
 
 if __name__ == '__main__':
     ### Set files
@@ -36,7 +26,6 @@ if __name__ == '__main__':
     v_model = vmap(model, (None, 0))
 
     ### Set RHS
-    rhs = f()
     
     # Set losses
     p0 = xpinn.PINNs[0]
