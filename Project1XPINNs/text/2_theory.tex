@@ -98,7 +98,7 @@ Our neural network $\mathcal{N}_{\boldsymbol{\theta}}$ can then be regarded as a
 
 We then measure the loss through
 \begin{equation}\label{eq:PINNMSE}
-    \MSE = \MSE_d + \MSE_0 + \MSE_u + \MSE_f,
+    \MSE = w_d\MSE_d + w_0\MSE_0 + w_u\MSE_u + w_f\MSE_f,
 \end{equation}
 where
 \begin{equation*}
@@ -109,7 +109,7 @@ where
     \underbrace{\MSE_f}_{\text{Residual}} &= \frac{1}{N_f} \sum_{i = 0}^{N_f} \left( \mathcal{L}u^*(x_f^i) - f(x_f^i) \right)^2.
 \end{split}
 \end{equation*}
-In this case, $(x_d^i,u_d^i)_{i=1}^{N_d}$ is a sample of data, $u_0^i$ is our initial condition, and $N_d,N_0,N_u,N_f$ is the number of data-, initial-, boundary-, and residual points on which the loss is calculated respectively. 
+In this case, $(x_d^i,u_d^i)_{i=1}^{N_d}$ is a sample of data, $u_0^i$ is our initial condition, and $N_d,N_0,N_u,N_f$ is the number of data-, initial-, boundary-, and residual points on which the loss is calculated respectively. $w_d,w_0,w_u,w_f$ are the respective weights given to each loss. 
 With this baseline, one can extend the loss function through appending more terms, if there are other conditions, such as periodicity, one would like to enforce.
 Note that in $\MSE_f$, we are taking the derivative of the network itself with respect to its output.
 This is done through the use of automatic differentiation, in much the same way the parameters are optimized, described further in \autoref{sec:autodiff}.
