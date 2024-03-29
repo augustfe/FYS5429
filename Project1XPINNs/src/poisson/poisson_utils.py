@@ -116,8 +116,8 @@ def create_PINN_test_domain(n :int = 1000):
     domain.create_testing_data(n, [0, 0], [1, 1])
     domain.write_to_file(data_path / "poisson_single_pinn_test.json", False)
 
-def crude_rel_L2(prediction:Array, true_value:Array):
-    return np.sqrt(np.sum((true_value-prediction)**2))/np.sqrt(np.sum(true_value**2))
+def crude_rel_L2(prediction:Array, true_value:Array, true_integral:float):
+    return np.sqrt(np.sum((true_value-prediction)**2))/true_integral
 
 def create_XPINN_domain(internal_points : int , boundary_points : int, interface_points : int):
     total_vertices = np.asarray(
