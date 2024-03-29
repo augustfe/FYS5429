@@ -110,9 +110,16 @@ The first residual is given by:
 \end{equation}
 which yields a known analytical solution:
 \begin{equation*}
-    u_{true}(x,y)=\sin(\pi x) \sin(\pi y).
+    u_{true}(x,y)=\sin(\pi x) \sin(\pi y),
 \end{equation*}
+which is displayed in \autoref{fig:exact_smooth}.
 
+\begin{figure}
+    \centering
+    \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Exact_Smooth.png}
+    \caption{The exact analytical solution to the Poisson problem with continuous residual.}
+    \label{fig:exact_smooth}
+\end{figure}
 Our experimental setup follows that of \textcite{müller2023achieving}.
 We consider the problem for both a single PINN and for an XPINN decomposition shown in \autoref{fig:decomp_poisson}.
 For the PINN, we train using 900 interior points and 120 boundary points distributed uniformly.
@@ -147,13 +154,21 @@ The second residual is due \cite{XPINN_generalize}, where they compare the gener
         \label{eq:discrete_poisson}
     \end{cases}
 \end{equation*}
-The exact solution is computed numerically using the \textit{poissonpy} package by \cite{poissonpy} on the uniform test mesh with 1 000 000 points. \ref{fig:} displays the exact solution. Again, we apply 900 internal training points, 120 boundary points, and 80 interface points for the XPINN model. \textsc{Adam} is again used with the same exponential decay rate, and the solvers are run for $2\times 10^5$ iterations. Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer. However, this is currently unavailable in optax as it is under development. In this case, we also consider two different XPINN models, 
+The reference solution is computed numerically using the \textit{poissonpy} package by \cite{poissonpy} on the uniform test mesh with 1 000 000 points. \autoref{fig:exact_discrete} displays the exact solution. Again, we apply 900 internal training points, 120 boundary points, and 80 interface points for the XPINN model. \textsc{Adam} is again used with the same exponential decay rate, and the solvers are run for $2\times 10^5$ iterations. Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer. However, this is currently unavailable in optax as it is under development.
+
+\begin{figure}
+    \centering
+    \includegraphics{Project1XPINNs/figures/Poisson/Exact_Discrete.png}
+    \caption{Numerically computed solution to the Poisson problem with discrete residual}
+    \label{fig:exact_discrete}
+\end{figure}
+
 
 Using our XPINN methodology, we aim to reproduce the results presented by \textcite{XPINN_generalize}.
 
 \subsubsection{Results}
 \paragraph{Continuous Residual:}
-\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. \ref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the iterations. Note that the mesh was re-generated between each iteration. Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization. This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function
+\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. \autoref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the iterations. Note that the mesh was re-generated between each iteration. Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization. This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function
 complexity in the subdomains, whereas each subdomain trains on fewer points than the PINN. 
 
 \begin{table}[h]
@@ -179,7 +194,7 @@ complexity in the subdomains, whereas each subdomain trains on fewer points than
     \label{fig:rel_l2_smooth_poisson}
 \end{figure}
 
-The PINN and XPINN solution, alongside their error, is also displayed in figure \ref{fig:poisson_smooth}
+The PINN and XPINN solution, alongside their error, is also displayed in figure \autoref{fig:poisson_smooth}
 \begin{figure*}
 \subfloat[PINN prediction]{
 \includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_Smooth.png}
