@@ -153,13 +153,13 @@ Using our XPINN methodology, we aim to reproduce the results presented by \textc
 
 \subsubsection{Results}
 \paragraph{Continuous Residual:}
-\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. Note that the mesh was re-generated between each iteration. Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization. This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function
+\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. \ref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the iterations. Note that the mesh was re-generated between each iteration. Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization. This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function
 complexity in the subdomains, whereas each subdomain trains on fewer points than the PINN. 
 
 \begin{table}[h]
-\caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the single PINN and our XPINN decomposition. }
+\caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the PINN and XPINN.}
     \centering
-    \begin{tabular}{|l|l l l|}
+    \begin{tabularx}{\linewidth}{|X|XXX|}
     \hline
      & Median & Minimum & Maximum
     \\
@@ -169,17 +169,33 @@ complexity in the subdomains, whereas each subdomain trains on fewer points than
     XPINN &$2.82\cdot 10^{-3}$ &  $1.23 \cdot 10^{-3}$&$5.42 \cdot 10^{-3}$
     \\
     \hline
-    \end{tabular}
+    \end{tabularx}
     \label{table:cont_poisson}
 \end{table}
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Relative_L2_smooth_Adam.png}
     \caption{}
     \label{fig:rel_l2_smooth_poisson}
 \end{figure}
 
-The PINN and XPINN solution, alongside their error, is also displayed in figure \textcolor{red}{}
+The PINN and XPINN solution, alongside their error, is also displayed in figure \ref{fig:poisson_smooth}
+\begin{figure*}
+\subfloat[PINN prediction]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_Smooth.png}
+}
+\subfloat[XPINN prediction]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN_Smooth.png}
+}
+
+\subfloat[PINN error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_error_Smooth.png}
+}
+\subfloat[XPINN error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN_error_Smooth.png}
+}
+\label{fig:poisson_smooth}
+\end{figure*}
 
 \subsection{Navier-Stokes Equation}
 \subsubsection{Problem Formulation}
