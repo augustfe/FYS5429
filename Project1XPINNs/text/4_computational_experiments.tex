@@ -28,25 +28,51 @@ By the method of characteristics, the analytical solution is:
     \end{cases}
 \end{equation}
 
-Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in figure 
-\begin{figure*}[t]
-    % \centering
-    \subfloat[PINN]{
-    \includegraphics[width=0.48\textwidth]{Project1XPINNs/figures/Poisson/}
+Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in \autoref{fig:decomp_advection} 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.48\textwidth]{Project1XPINNs/figures/advection/advection_decomp.png}
     \label{subfig:single}
-    }
-    \caption{Example training points for the Poisson problem for a single PINN across the domain (left) and an XPINN where we have on PINN confined in the square $[0.25, 0.75]\times [0.25, 0.75]$ and the other for the remaining points. In both cases, we define 900 internal points and 120 boundary points. For the XPINN, we define an additional 80 interface points.}
-    \label{fig:decomp_poisson}
-\end{figure*}
+    \caption{Illustration of advection domain decomposition.}
+    \label{fig:decomp_advection}
+\end{figure}
 
-\textcolor{red}{Insert citation}.
-In order to verify that our method is not simply learning the decomposition itself, we also verify that the wave is able to travel across the interfaces by setting $\alpha = 1$ while keeping the same decomposition.
+In order to verify that our method is not simply learning the decomposition itself, we also verify that the wave is able to travel across the interfaces by setting $\alpha = -1$ while keeping the same decomposition.
 
-Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer.
+Finally we compare our XPINN model with a single PINN training on the entire domain without any subdomains. 
+
+Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer. The learning rate is set to $10^{-4}$.
 We utilize $2000$ points for the interior, and $200$ evenly spread around the boundary and interfaces. 
 
 \subsubsection{Results}
 
+\begin{figure*}
+\subfloat[predictions]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/0.5_predictions.png}
+}
+\label{subfig:0.5_predictions}
+\subfloat[error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/0.5_error.png}
+}
+\label{fig:0.5_advection}
+\end{figure*}
+
+
+\begin{figure*}
+\subfloat[predictions]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/-1_predictions.png}
+}
+\label{subfig:0.5_predictions}
+\subfloat[error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/-1_error.png}
+}
+\label{fig:-1_advection}
+\end{figure*}
+
+
+
+% halloen!
+%%%%% TJOHEI
 \subsection{Poisson Equation}
 \subsubsection{Problem Formulation}
 In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity. The problem is a second order linear PDE, and is defined as:
@@ -65,8 +91,9 @@ The first residual is given by:
 \end{equation}
 which yields a known analytical solution:
 \begin{equation*}
-    u_{true}(x,y)=\sin(\pi x) \sin(\pi y).
+    u_{true}(x,y)=\sin(\pi x) \sin(\pi y),
 \end{equation*}
+which is seen on figure \ref{fig:}
 
 Our experimental setup follows that of \textcite{müller2023achieving}.
 We consider the problem for both a single PINN and for an XPINN decomposition shown in \autoref{fig:decomp_poisson}.
