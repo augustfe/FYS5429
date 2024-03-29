@@ -2,6 +2,9 @@ from pathlib import Path
 import numpy as np
 from matplotlib import colormaps, pyplot as plt, cm
 import matplotlib as mpl
+from type_util import Array
+from xpinn import XPINN
+from jax import vmap, lax
 
 
 # Set up for LaTeX rendering
@@ -44,6 +47,87 @@ def setColors(
     sm.set_array([])
 
     return cmap, norm, sm
+
+
+def plot_losses(
+    a_losses: Array,
+    n_iter: int,
+    title: str,
+    savepath: Path,
+    t_0: int = 0,
+    # alpha: float = 0.5,
+) -> None:
+    """Plot the losses of the PINNs over the training iterations.
+
+    Args:
+        a_losses (Array): Array of losses for each PINN
+        t_0 (int): Starting index for the plot
+        n_iter (int): Number of iterations
+        title (str): Title of the plot
+    """
+    t = np.arange(t_0, n_iter)
+    for i, loss in enumerate(a_losses):
+        plt.plot(t, loss[t_0:], label=f"PINN {i}")
+    plt.plot(t, np.sum(a_losses, axis=0)[t_0:], "--", label="Total loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.yscale("log")
+    plt.legend()
+    plt.title(title)
+    save_name = title.replace(" ", "_").replace("$", "").replace("\\", "")
+    plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
+    plt.show()
+    # plt.title(f"Loss per Pinn over {n_iter} epochs")
+
+
+def compare_analytical_advection(
+    xpinn: XPINN,
+    file_test: Path,
+    savepath: Path,
+    alpha: float = 0.5,
+):
+    def analytical_solution(point: Array, alpha: float = 0.5) -> float:
+        x = point[0]
+        t = point[1]
+        condition = (x - alpha * t > -0.2) & (x - alpha * t < 0.2)
+        return lax.select(condition, 1.0, 0.0)
+
+    points, predictions = xpinn.predict(file_test)
+    total_points = np.concatenate(points)
+    total_pred = np.concatenate(predictions).flatten()
+
+    # Compute all errors and predictions first
+    analytical_values = vmap(lambda point: analytical_solution(point, alpha))(
+        total_points
+    )
+    analytical_values: Array
+
+    errors = np.abs(analytical_values - total_pred)
+
+    # Scatter plot for errors
+    scatter1 = plt.scatter(
+        total_points[:, 0], total_points[:, 1], c=errors, cmap="turbo", s=1
+    )
+    func_name = f"$u_t {'+' if alpha > 0 else '-'} {abs(alpha)}u_x = 0$"
+    plt.title(f"Absolute error for {func_name}")
+    plt.xlabel("$x$")
+    plt.ylabel("$t$")
+    scatter1.set_clim(0, errors.max())
+    plt.colorbar(scatter1)  # Add one colorbar based on the errors
+    plt.savefig(savepath / f"{alpha}_error.pdf", bbox_inches="tight")
+    plt.show()
+
+    # Scatter plot for predictions
+    scatter2 = plt.scatter(
+        total_points[:, 0], total_points[:, 1], c=total_pred, cmap="coolwarm", s=1
+    )
+    plt.title(f"Predictions for {func_name}")
+    plt.xlabel("$x$")
+    plt.ylabel("$t$")
+    scatter2.set_clim(total_pred.min(), total_pred.max())
+    plt.colorbar(scatter2)  # Add one colorbar based on the predictions
+    plt.savefig(savepath / f"{alpha}_predictions.pdf", bbox_inches="tight")
+    plt.show()
 
 
 def setup_axis(xlim: tuple[int], ylim: tuple[int]) -> plt.Axes:

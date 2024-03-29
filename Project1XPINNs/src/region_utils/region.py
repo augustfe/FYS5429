@@ -228,6 +228,8 @@ class Domain:
         filename = Path(filename)
         if not filename.suffix == ".json":
             raise ValueError("Filename must have a .json extension")
+        
+        filename.parent.mkdir(parents=True, exist_ok=True)
 
         if train:
             main_data = self.pinn_points
