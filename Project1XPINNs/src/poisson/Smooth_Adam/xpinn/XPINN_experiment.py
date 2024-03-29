@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 
     ### Initializing optimizer
-    shapes = [[2] + [64] + [1],[2] + [64] + [64] + [1]]
+    shapes = [[2] + [64] + [1],[2] + [64] + [1]]
     exponential_decay = optax.exponential_decay(
             init_value=0.001,
             transition_steps=10000,
