@@ -18,8 +18,7 @@ where $\alpha = 0.5$, and the initial condition $f$ is defined by
         0 &\text{else}.
     \end{cases}
 \end{equation*}
-
-By the method of characteristics, the analytical solution is:
+By the method of characteristics, the analytical solution is
 \begin{equation}
     u(x,t) = u_0(x-\alpha t)=
     \begin{cases}
@@ -28,107 +27,143 @@ By the method of characteristics, the analytical solution is:
     \end{cases}
 \end{equation}
 
-Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$. The analytical solution also predicts two discontinuities. For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in \autoref{fig:decomp_advection} 
-\begin{figure}[htb]
+Thus, the problem defines a wave travelling rightwards without diffusion with a speed $\alpha$.
+The analytical solution also predicts two discontinuities.
+For our XPINN formulation, we decompose the domain according to the predicted discontinuities as in \autoref{fig:decomp_advection}.
+
+\begin{figure}[h]
     \centering
-    \includegraphics[width=0.48\textwidth]{Project1XPINNs/figures/advection/advection_decomp.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/advection_decomp.png}
     \label{subfig:single}
-    \caption{Illustration of advection domain decomposition.}
+    \caption{Training points for the advection equation with the domain decomposed into three subdomains.}
     \label{fig:decomp_advection}
 \end{figure}
 
 In order to verify that our method is not simply learning the decomposition itself, we also verify that the wave is able to travel across the interfaces by setting $\alpha = -1$ while keeping the same decomposition.
-
 Finally we compare our XPINN model with a single PINN training on the entire domain without any subdomains. 
 
-Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer. The learning rate is set to $10^{-4}$.
+Our network is composed of $6$ hidden layers, each with $20$ nodes, using $\tanh$ as our hidden activation function and no activation for the output layer. The learning rate is set to $10^{-4}$, with \textsc{Adam} as the optimizer.
 We utilize $2000$ points for the interior, and $200$ evenly spread around the boundary and interfaces. 
 
 \subsubsection{Results}
-
-\begin{figure*}
-\subfloat[predictions]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/0.5_predictions.png}
-}
-\label{subfig:0.5_predictions}
-\subfloat[error]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/0.5_error.png}
-}
-\subfloat[loss]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/Loss per Pinn over 10000 epochs, alpha=0.5_10000.pdf}
-}
-\label{fig:0.5_advection}
-\end{figure*}
+We run the models for 10 000 epochs each.
+The resulting predictions are seen in \autoref{fig:advection_xpinn_pred}, closely fitting the true solution.
+The absolute errors against the true solution can be seen in \autoref{fig:advection_xpinn_error}, where most of the error is found along the interfaces.
+This is unsurprising, given the discontinuities along the boundaries.
 
 
-\begin{figure*}
-\subfloat[predictions]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/-1_predictions.png}
-}
-\label{subfig:0.5_predictions}
-\subfloat[error]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/-1_error.png}
-}
-\subfloat[loss]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/Loss_per_Pinn_over_10000_epochs,_alpha=-1.pdf}
-}
-\label{fig:-1_advection}
-\end{figure*}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/0.5_predictions.png}
+    \caption{Predictions for the advection equation with XPINN, $\alpha = 0.5$.}
+    \label{fig:advection_xpinn_pred}
+\end{figure}
 
-\begin{figure*}
-\subfloat[predictions]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/single_0.5_predictions.png}
-}
-\label{subfig:0.5_predictions}
-\subfloat[error]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/single_0.5_error.png}
-}
-\subfloat[loss]{
-\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/advection/Single_PINN.pdf}
-}
-\label{fig:pinn_advection}
-\end{figure*}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/0.5_error.png}
+    \caption{Error against true solution, XPINN with $\alpha=0.5$.}
+    \label{fig:advection_xpinn_error}
+\end{figure}
 
-% halloen!
-%%%%% TJOHEI
+The loss per epoch is shown in \autoref{fig:loss_per_advection}.
+It is interesting to note how the different sub-PINNs adjust in accordance with each other, wherein the reduction in the loss of one sub-PINN leads to an increase in the others, while the total loss is reduced.
+Do note that the model seems to still be improving after 10000 epochs, and that the learning rate needs further tuning.
+We chose to not optimize this problem fully, as we were more interested in learning more about the behaviour of XPINNs, and seeing if our implementation had any merit.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/Loss per Pinn over 10000 epochs, alpha=0.5_10000.pdf}
+    \caption{Loss per epoch for advection XPINN, with $\alpha=0.5$.}
+    \label{fig:loss_per_advection}
+\end{figure}
+
+Comparing against how a single PINN on the entire domain performs, we see better and more stable results from running the same number of epochs.
+The predicted values are shown in \autoref{fig:single_ad_pred}, with the errors in \autoref{fig:single_ad_error}.
+XPINNs then probably do not have a lot of merit for such a simple problem, especially given the simplicity of deriving the analytical solution.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_0.5_predictions.png}
+    \caption{Predicted values for the advection equation, with a single PINN.}
+    \label{fig:single_ad_pred}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_0.5_error.png}
+    \caption{Absolute errors against the true solution, with a single PINN.}
+    \label{fig:single_ad_error}
+\end{figure}
+
+We stress test our model by changing the equation in question by setting $\alpha=-1$, while keeping the same domain decomposition.
+This is done in order to ensure that the XPINN is not simply learning the domain decomposition, but rather the behaviour we are expecting.
+The wave is now able to traverse across the subdomain decomposition, as in \autoref{fig:alpha-1_pred}, however with worse errors in \autoref{fig:alpha-1_error} than we saw previously.
+This is a promising result before moving on to more difficult problems.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/-1_predictions.png}
+    \caption{Predictions with $\alpha=-1$, same decomposition.}
+    \label{fig:alpha-1_pred}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/-1_error.png}
+    \caption{Absolute error with $\alpha=-1$.}
+    \label{fig:alpha-1_error}
+\end{figure}
+
 
 \subsection{Poisson Equation}
 \subsubsection{Problem Formulation}
-In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity. The problem is a second order linear PDE, and is defined as:
+In this subsection, we consider a two-dimensional Poisson equation with residual discontinuity.
+The problem is a second order linear PDE, and is defined as
 \begin{align}\label{eq:poisson}
 \begin{cases}
     u_{xx}+u_{yy} &= f \text{ on } \Omega \\
     u(x,y) &= 0 \text{ on } \partial\Omega,
 \end{cases}
 \end{align}
-where $\Omega = (0,1) \times (0,1)$. For the Poisson problem, we consider two residuals. 
+where $\Omega = [0,1] \times [0,1]$.
+For the Poisson problem, we consider two residuals.
+
 \paragraph{Continuous Residual:}
-The first residual is given by:
-\begin{equation}
-    f_{cont}(x,y)= -2\pi^2\sin(\pi x) \sin(\pi y),
-    \label{eq:continuous_poisson}
+The first residual is given by
+\begin{equation}\label{eq:continuous_poisson}
+    f_{\text{cont}}(x,y)= -2\pi^2\sin(\pi x) \sin(\pi y),
 \end{equation}
-which yields a known analytical solution:
+which yields the known analytical solution
 \begin{equation*}
-    u_{true}(x,y)=\sin(\pi x) \sin(\pi y),
+    u_{\text{true}}(x,y)=\sin(\pi x) \sin(\pi y),
 \end{equation*}
 which is displayed in \autoref{fig:exact_smooth}.
 
-\begin{figure}
+\begin{figure}[h]
     \centering
-    \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Exact_Smooth.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/Poisson/Exact_Smooth.png}
     \caption{The exact analytical solution to the Poisson problem with continuous residual.}
     \label{fig:exact_smooth}
 \end{figure}
+
 Our experimental setup follows that of \textcite{müller2023achieving}.
 We consider the problem for both a single PINN and for an XPINN decomposition shown in \autoref{fig:decomp_poisson}.
 For the PINN, we train using 900 interior points and 120 boundary points distributed uniformly.
-For the XPINN, we also add 80 uniformly distributed interface points. Thus, the total amount of training points used for the XPINN exceeds that for the PINN. We apply unitary weights to the boundary and interface losses.
+For the XPINN, we also add 80 uniformly distributed interface points. Thus, the total amount of training points used for the XPINN exceeds that for the PINN. We apply unitary weights to the boundary and interface losses. All PINNs have the same architecture of a 3-layered neural network with 64 hidden units, and we use the $\tanh$ activation function. 
 Both solvers are trained using the \textsc{Adam} optimizer with an exponentially decreasing learning rate.
 The initial learning rate is $10^{-3}$.
 After $1.5\times 10^4$ steps, we decrease the learning rate by a factor of $10^{-1}$ every $10^4$ steps until a minimum learning rate of $10^{-7}$.
 We train both cases for $2\times 10^5$ iterations. For our testing, we consider a uniform grid with 1,000,000 points. 
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/Poisson/xpinn_decomp.pdf}
+    \caption{Training points with the XPINN decomposition for the Poisson equation. We train using 900 internal, 120 boundary and 80 interface points. The single PINN is given the same points, disregarding the interface points.}
+    \label{fig:decomp_poisson}
+\end{figure}
+
+\begin{comment}
 \begin{figure*}[t]
     % \centering
     \subfloat[PINN]{
@@ -143,62 +178,74 @@ We train both cases for $2\times 10^5$ iterations. For our testing, we consider 
     \caption{Example training points for the Poisson problem for a single PINN across the domain (left) and an XPINN where we have on PINN confined in the square $[0.25, 0.75]\times [0.25, 0.75]$ and the other for the remaining points. In both cases, we define 900 internal points and 120 boundary points. For the XPINN, we define an additional 80 interface points.}
     \label{fig:decomp_poisson}
 \end{figure*}
+\end{comment}
 
-\paragraph{Discrete Residual:}
-The second residual is due \cite{XPINN_generalize}, where they compare the generalizeability of PINNs and XPINNs. The residual is given as a discrete form:
+\paragraph{Discontinuous Residual:}
+The second residual is due \cite{XPINN_generalize}, where they compare the generalizeability of PINNs and XPINNs. The residual is given as a discontinuous form:
 \begin{equation*}
     f_{disc}(x,y)=
     \begin{cases}
         1 &\text{if} \, (x,y)\in [0.25,0.75]\times[0.25,0.75], \\
         0 &\text{else}.
-        \label{eq:discrete_poisson}
+        \label{eq:discontinuous_poisson}
     \end{cases}
 \end{equation*}
-The reference solution is computed numerically using the \textit{poissonpy} package by \cite{poissonpy} on the uniform test mesh with 1 000 000 points. \autoref{fig:exact_discrete} displays the exact solution. Again, we apply 900 internal training points, 120 boundary points, and 80 interface points for the XPINN model. \textsc{Adam} is again used with the same exponential decay rate, and the solvers are run for $2\times 10^5$ iterations. Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer. However, this is currently unavailable in optax as it is under development.
+The reference solution is computed numerically using the \verb|poissonpy| package by \cite{poissonpy} on the uniform test mesh with 1 000 000 points.
+\autoref{fig:exact_discontinuous} displays the reference solution.
+We apply a 9 layer neural network with 20 hidden units, using the $\tanh$ activation function.
+Again, we apply 900 internal training points, 120 boundary points, and 80 interface points for the XPINN model.
+\textsc{Adam} is again used with the same exponential decay rate, and the solvers are run for $2\times 10^5$ iterations
+Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer.
+However, this is currently unavailable in optax as it is under development.
 
 \begin{figure}
     \centering
-    \includegraphics{Project1XPINNs/figures/Poisson/Exact_Discrete.png}
-    \caption{Numerically computed solution to the Poisson problem with discrete residual}
-    \label{fig:exact_discrete}
+    \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Exact_Discrete.png}
+    \caption{Numerically computed reference solution to the Poisson problem with discontinuous residual.}
+    \label{fig:exact_discontinuous}
 \end{figure}
-
-
-Using our XPINN methodology, we aim to reproduce the results presented by \textcite{XPINN_generalize}.
 
 \subsubsection{Results}
 \paragraph{Continuous Residual:}
-\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer. \autoref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the iterations. Note that the mesh was re-generated between each iteration. Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization. This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function
-complexity in the subdomains, whereas each subdomain trains on fewer points than the PINN. 
+\autoref{table:cont_poisson} shows the minimum, median, and maximum relative $L^2$ errors of the single PINN and XPINN solvers for the continuous residual Poisson equation using the \textsc{Adam} optimizer.
+Note that the mesh was re-generated between each iteration.
+\autoref{fig:rel_l2_smooth_poisson} also displays the $L^2$ error evolution against the iterations.
+From the figure, we see that the $L^2$ error seems to stabilize.
+Although of similar orders of magnitude, we see that the PINN model frequently outperforms our XPINN discretization.
+This is as expected by the argument of \textcite{XPINN_generalize}, as the domain decomposition does not reduce the target function complexity in the subdomains, whereas each subdomain trains on fewer points than the PINN. 
 
 \begin{table}[h]
 \caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the PINN and XPINN.}
     \centering
-    \begin{tabularx}{\linewidth}{|X|XXX|}
-    \hline
+    % \begin{tabularx}{\linewidth}{|X|XXX|}
+    \begin{tabular}{r|c|c|c}\toprule
      & Median & Minimum & Maximum
     \\
-    \hline
-    PINN &$1.37\cdot 10^{-3}$ &  $8.4 \cdot 10^{-4}$&$2.16 \cdot 10^{-3}$ 
+    \colrule
+    PINN & $1.37\cdot 10^{-3}$ &  $8.4 \cdot 10^{-4}$ & $2.16 \cdot 10^{-3}$ 
     \\
-    XPINN &$2.82\cdot 10^{-3}$ &  $1.23 \cdot 10^{-3}$&$5.42 \cdot 10^{-3}$
+    XPINN & $2.82\cdot 10^{-3} $ &  $1.23 \cdot 10^{-3}$ & $5.42 \cdot 10^{-3}$
     \\
-    \hline
-    \end{tabularx}
+    \botrule
+    \end{tabular}
     \label{table:cont_poisson}
 \end{table}
 \begin{figure}[h!]
     \centering
     \includegraphics[width = \linewidth]{Project1XPINNs/figures/Poisson/Relative_L2_smooth_Adam.png}
-    \caption{}
+    \caption{Caption}
     \label{fig:rel_l2_smooth_poisson}
 \end{figure}
 
-The PINN and XPINN solution, alongside their error, is also displayed in figure \autoref{fig:poisson_smooth}
+The PINN and XPINN solution, alongside their error, is also displayed in \autoref{fig:poisson_smooth}.
+We note that the significant sources of error for the PINN appear to be surrounding the boundaries.
+The XPINN solution also shows boundary error, but is mainly dominated by the interface error.
+Optimizing for the different weighting hyper-parameters might lowered the interface error, potentially at the cost of some boundary error.
 \begin{figure*}
 \subfloat[PINN prediction]{
 \includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_Smooth.png}
 }
+\hfill
 \subfloat[XPINN prediction]{
 \includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN_Smooth.png}
 }
@@ -206,11 +253,36 @@ The PINN and XPINN solution, alongside their error, is also displayed in figure 
 \subfloat[PINN error]{
 \includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_error_Smooth.png}
 }
+\hfill
 \subfloat[XPINN error]{
 \includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN_error_Smooth.png}
 }
+\caption{Predictions and absolute errors of the PINN (left) and XPINN (right) solvers.}
 \label{fig:poisson_smooth}
 \end{figure*}
+
+\paragraph{discontinuous Residual:}
+\autoref{fig:poisson_discontinuous} displays the PINN and XPINN solutions, alongside their errors on the domain. Both solvers seem to perform worse on this problem. Notably, the XPINN solver appears to perform significantly worse, which is according to expectations \textcite{XPINN_generalize}.
+\begin{figure*}
+\subfloat[PINN prediction]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_Discrete.png}
+}
+\hfill
+\subfloat[XPINN prediction]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN1_Discrete.png}
+}
+
+\subfloat[PINN error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/PINN_error_Discrete.png}
+}
+\hfill
+\subfloat[XPINN error]{
+\includegraphics[width=0.48 \textwidth]{Project1XPINNs/figures/Poisson/XPINN1_error_Discrete.png}
+}
+\caption{Predictions and absolute errors of the PINN (left) and XPINN (right) solvers for the Poisson problem with discontinuous residual.}
+\label{fig:poisson_discontinuous}
+\end{figure*}
+
 
 \subsection{Navier-Stokes Equation}
 \subsubsection{Problem Formulation}
