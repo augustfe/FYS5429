@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 
     ### Initializing optimizer
-    shapes = [[2] + [64] + [1],[2] + [64] + [64] + [1]]
+    shapes = [[2] + [64] + [1],[2] + [64] + [1]]
     exponential_decay = optax.exponential_decay(
             init_value=0.001,
             transition_steps=10000,
@@ -69,10 +69,11 @@ if __name__ == '__main__':
     # Getting true value
     u_vmap = vmap(u_star, (0))
     true_value = u_vmap(total_points).reshape(-1, 1)
+    true_integral = np.sqrt(np.sum(true_value**2))
 
     #Setting the L2 relative errors
     l2_errors = onp.zeros(nr_saved_points + 1)
-    l2_errors[0] = crude_rel_L2(total_pred, true_value)
+    l2_errors[0] = crude_rel_L2(total_pred, true_value, true_integral)
     
     for i in tqdm(range(nr_saved_points)):
         ### Run iterations

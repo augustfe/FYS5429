@@ -1,2 +1,2 @@
 from poisson.poisson_utils import create_XPINN_domain
-create_XPINN_domain(400, 120, 120)
+create_XPINN_domain(900, 120, 80)
