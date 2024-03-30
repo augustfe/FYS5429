@@ -10,7 +10,11 @@ from jax import vmap, lax
 # Set up for LaTeX rendering
 mpl.rcParams["mathtext.fontset"] = "stix"
 mpl.rcParams["font.family"] = "STIXGeneral"
-mpl.rcParams["figure.titlesize"] = 15
+mpl.rcParams["figure.titlesize"] = 20
+mpl.rcParams["axes.titlesize"] = 16
+mpl.rcParams["axes.labelsize"] = 14
+# xtick.labelsize : 16
+# ytick.labelsize : 16
 
 
 def setColors(
@@ -47,6 +51,54 @@ def setColors(
     sm.set_array([])
 
     return cmap, norm, sm
+
+
+def plot_domain(
+    xpinn: XPINN,
+    savepath: Path,
+    title: str,
+    save_name: str,
+) -> None:
+    """Plot the domain of the PINNs.
+
+    Args:
+        xpinn (XPINN): The XPINN object containing the PINNs.
+        savepath (Path): Path to save the figure.
+        title (str): Title of the figure.
+        cmap_name (str, optional): Name of the colormap. Defaults to "viridis".
+        norm_type (str, optional): Type of normalization to use. Defaults to "log".
+    """
+    if len(xpinn.PINNs) == 1:
+        pinn = xpinn.PINNs[0]
+        plt.scatter(pinn.interior[:, 0], pinn.interior[:, 1], label="Interior")
+        plt.scatter(pinn.boundary[:, 0], pinn.boundary[:, 1], label="Boundary")
+
+    else:
+        for i, pinn in enumerate(xpinn.PINNs):
+            plt.scatter(
+                pinn.interior[:, 0],
+                pinn.interior[:, 1],
+                label=f"Interior {i}",
+            )
+            plt.scatter(
+                pinn.boundary[:, 0],
+                pinn.boundary[:, 1],
+                label=f"Boundary {i}",
+            )
+
+        for interface in xpinn.Interfaces:
+            plt.scatter(
+                interface.points[:, 0],
+                interface.points[:, 1],
+                label=f"Interface {interface.indices}",
+            )
+
+    plt.legend()
+    plt.xlabel("$x$")
+    plt.ylabel("$t$")
+    plt.title(title)
+    plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
+    plt.show()
 
 
 def plot_losses(
