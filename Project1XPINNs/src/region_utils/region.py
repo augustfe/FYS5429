@@ -241,6 +241,38 @@ class Domain:
             args["interior"] = valid_points
             args["boundary"] = np.array([])
 
+    def to_dict_format(self, train: bool = True):
+        """Convert the data to a dictionary
+
+        Args:
+            train (bool, optional): Whether to write the training data. Defaults to True.
+        """
+        if train:
+            main_data = self.pinn_points
+            interfaces = self.interfaces
+        else:
+            main_data = self.testing_points
+            interfaces = {}
+
+        data = {"XPINNs": [], "Interfaces": []}
+        for i, subdomain in enumerate(self.subdomains):
+            args = main_data[i]
+            subdomain_data = {
+                "Internal points": args["interior"].tolist(),
+                "Boundary points": args["boundary"].tolist(),
+            }
+            data["XPINNs"].append(subdomain_data)
+
+        for key, val in interfaces.items():
+            data["Interfaces"].append(
+                {
+                    "XPINNs": key,
+                    "Points": sum([point.tolist() for point in val], []),
+                }
+            )
+
+        return data
+
     def write_to_file(self, filename: str | Path, train: bool = True) -> None:
         """Write the domain data to a JSON file
 
@@ -254,30 +286,10 @@ class Domain:
 
         filename.parent.mkdir(parents=True, exist_ok=True)
 
-        if train:
-            main_data = self.pinn_points
-            interfaces = self.interfaces
-        else:
-            main_data = self.testing_points
-            interfaces = {}
-
         with open(filename, "w") as outfile:
-            data = {"XPINNs": [], "Interfaces": []}
-            for i, subdomain in enumerate(self.subdomains):
-                args = main_data[i]
-                subdomain_data = {
-                    "Internal points": args["interior"].tolist(),
-                    "Boundary points": args["boundary"].tolist(),
-                }
-                data["XPINNs"].append(subdomain_data)
+            
+            data = self.to_dict_format(train = train)
 
-            for key, val in interfaces.items():
-                data["Interfaces"].append(
-                    {
-                        "XPINNs": key,
-                        "Points": sum([point.tolist() for point in val], []),
-                    }
-                )
             json.dump(data, outfile)
 
     def plot(self, train: bool = True) -> None:
