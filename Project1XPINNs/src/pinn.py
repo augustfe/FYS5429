@@ -172,8 +172,8 @@ class PINN:
 
         kwargs = {}
         for i, wb_tuple in enumerate(self.params):
-            kwargs[f"weights_{i}"] = wb_tuple[0]
-            kwargs[f"biases_{i}"] = wb_tuple[1]
+            kwargs[f'weights_{i}'] = wb_tuple[0]
+            kwargs[f'biases_{i}'] = wb_tuple[1]
 
         # Use np.savez to save the arrays in the file
         np.savez(params_path, **kwargs)
@@ -195,7 +195,7 @@ class PINN:
         params = np.load(params_path)
 
         wb = []
-        for i in range(len(params.items()) // 2):
-            wb.append((params[f"weights_{i}"], params[f"biases_{i}"]))
+        for i in range(len(params.items())//2):
+            wb.append((params[f'weights_{i}'], params[f'biases_{i}']))
 
         self.params = wb
