@@ -56,6 +56,37 @@ def setColors(
     return cmap, norm, sm
 
 
+def plot_poisson(
+    points: Array,
+    val: Array,
+    title: str,
+    savepath: Path,
+    save_name: str,
+    clim: tuple = None,
+):
+    """Plot the values of the Poisson equation.
+
+    Args:
+        points (Array): Points to plot
+        val (Array): Values to plot
+        title (str): Title of the plot
+        savepath (Path): Path to save the figure
+        save_name (str): Name of the file to save the figure as
+        clim (tuple): Color limits
+    """
+    # fig, ax = plt.figure()
+    # ax.set_aspect("equal")
+    plt.scatter(points[:, 0], points[:, 1], c=val, cmap="turbo", s=1)
+    plt.xlabel("$x$")
+    plt.ylabel("$y$")
+    if clim:
+        plt.clim(clim[0], clim[1])
+    plt.colorbar()
+    plt.title(title)
+    plt.savefig(savepath / f"{save_name}.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+
 def plot_domain(
     xpinn: XPINN,
     savepath: Path,
@@ -83,11 +114,12 @@ def plot_domain(
                 pinn.interior[:, 1],
                 label=f"Interior {i}",
             )
-            plt.scatter(
-                pinn.boundary[:, 0],
-                pinn.boundary[:, 1],
-                label=f"Boundary {i}",
-            )
+            if pinn.boundary.size != 0:
+                plt.scatter(
+                    pinn.boundary[:, 0],
+                    pinn.boundary[:, 1],
+                    label=f"Boundary {i}",
+                )
 
         for interface in xpinn.Interfaces:
             plt.scatter(
@@ -109,6 +141,7 @@ def plot_losses(
     n_iter: int,
     title: str,
     savepath: Path,
+    save_name: str,
     t_0: int = 0,
     # alpha: float = 0.5,
 ) -> None:
@@ -129,7 +162,6 @@ def plot_losses(
     plt.yscale("log")
     plt.legend()
     plt.title(title)
-    save_name = title.replace(" ", "_").replace("$", "").replace("\\", "")
     plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
     plt.show()
     # plt.title(f"Loss per Pinn over {n_iter} epochs")
