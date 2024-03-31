@@ -1,8 +1,9 @@
 \subsection{Domain Decomposition}
-We implement our domain decomposition framework with flexibility in mind, in order to allow for easy experimentation, designed to implement directly into our XPINN implementation.
+We implement our domain decomposition framework with flexibility in mind, in order to allow for easy experimentation, designed to integrate seamlessly with our XPINN implementation.
 The computational domain, representing the physical and temporal space over which our problem is defined, is partitioned into multiple subdomains.
 
 The subdomains themselves are composed of additive and subtractive polygons and circles, allowing for a wide variety of geometric boundaries.
+The decomposition generated inherently defines the number of sub-PINNs, as well as the boundaries, meaning this does not need to be specified again later, other than loading in the generated points.
 The goal of domain decomposition is, among other aspects, division of the total workload required, increasing computational efficiency.
 It also offers an avenue for multiprocessing, which can quickly become cumbersome with traditional neural networks.
 

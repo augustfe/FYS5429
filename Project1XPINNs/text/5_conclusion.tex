@@ -5,11 +5,11 @@ Improvements largely stem from the ability to train more complex models longer o
 
 Large Language Models (LLMs), such as LLaMa \cite{touvron2023llama}, contain billions of parameters.
 Recent work has explored 1.58bit models \cite{ma2024era}, where each weight $W_{ij}$ is constrained to be in $\{-1, 0, 1\}$, in order to reduce the size of the models.
-This has the potential benefit of reducing the energy usage associated with training the models.
-This exemplifies the direction machine learning seems to be moving, wherein models are specialized based on the problem at hand, rather than being basic approximators.
+Using simpler weights has the potential benefit of reducing the energy usage associated with training the models.
+This more nuanced approach exemplifies the direction the field of machine learning seems to be moving, wherein models are specialized based on the problem at hand, rather than being brute force approximators.
 
-XPINNs seem to, based on our results, not be the final stage in the evolution of PINNs.
-The limitations stemming from the reduction in available data, as well as the introduction of interface losses, seem to not be outweighed by the solutions we were able to produce.
+Based on our findings XPINNs do not seem to be the final advancement in the development of PINNs.
+The constraints arising from diminished data availability, coupled with the emergence of interface losses, do not seem to be effectively counterbalanced by the solutions we were able to produce.
 Augmented Physics-Informed Neural Networks (APINNs), introduced in \textcite{Hu_2023}, act as a natural evolution of XPINNs.
 With APINNs, gating functions serve as the equivalent of the domain decomposition presented in this paper.
 Using this methodology, each sub-PINN has access to all of the training data, and there are no hard boundaries introduced.
