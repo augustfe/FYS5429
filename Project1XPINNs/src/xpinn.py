@@ -212,11 +212,19 @@ class XPINN:
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
 
+        # store self.losses
+        with open(path / "losses.npy", "wb") as f:
+            np.save(f, self.losses)
+
         for i, pinn in enumerate(self.PINNs):
             pinn.save_model(path / f"pinn_{i}")
 
     def load_model(self, path: str | Path) -> None:
         path = Path(path)
+
+        # store self.losses
+        with open(path / "losses.npy", "rb") as f:
+            self.losses = np.load(f)
 
         for i, pinn in enumerate(self.PINNs):
             pinn.load_model(path / f"pinn_{i}")
