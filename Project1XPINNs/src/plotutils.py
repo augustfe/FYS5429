@@ -171,6 +171,7 @@ def compare_analytical_advection(
     xpinn: XPINN,
     file_test: Path,
     savepath: Path,
+    savename: str,
     alpha: float = 0.5,
     prefix: str = "",
 ):
@@ -203,11 +204,7 @@ def compare_analytical_advection(
     scatter1.set_clim(0, errors.max())
     plt.colorbar(scatter1)  # Add one colorbar based on the errors
 
-    # Ensure the filename does not start with an underscore in case prefix is empty
-    # Ensure the filename does not start with an underscore in case prefix is empty
-    name = f"{prefix}_{alpha}" if prefix else f"{alpha}"
-
-    plt.savefig(savepath / f"{name}_error.png", bbox_inches="tight")
+    plt.savefig(savepath / f"{savename}_error.png", bbox_inches="tight")
     plt.show()
 
     # Scatter plot for predictions
@@ -219,7 +216,7 @@ def compare_analytical_advection(
     plt.ylabel("$t$")
     scatter2.set_clim(total_pred.min(), total_pred.max())
     plt.colorbar(scatter2)  # Add one colorbar based on the predictions
-    plt.savefig(savepath / f"{name}_predictions.png", bbox_inches="tight")
+    plt.savefig(savepath / f"{savename}_predictions.png", bbox_inches="tight")
     plt.show()
 
 
