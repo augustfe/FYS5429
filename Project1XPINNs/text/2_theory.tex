@@ -98,15 +98,15 @@ Our neural network $\mathcal{N}_{\boldsymbol{\theta}}$ can then be regarded as a
 
 We then measure the loss through
 \begin{equation}\label{eq:PINNMSE}
-    \MSE = w_d\MSE_d + w_0\MSE_0 + w_u\MSE_u + w_f\MSE_f,
+    \MSE = \MSE_d + \MSE_0 + \MSE_u + \MSE_f,
 \end{equation}
 where
 \begin{equation*}
 \begin{split}
-    \underbrace{\MSE_d}_{\text{data}} &= \frac{1}{N_d} \sum_{i = 0}^{N_d} \left( u^*(x_d^i) - u_d^i \right)^2,  \\
-    \underbrace{\MSE_0}_{\text{Initial}} &= \frac{1}{N_0} \sum_{i = 0}^{N_0} \left( u^*(x_0^i) - u_0^i \right)^2,  \\
-    \underbrace{\MSE_u}_{\text{Boundary}} &= \frac{1}{N_u} \sum_{i = 0}^{N_u} \left( u^*(x_u^i) - g(x_u^i) \right)^2, \\
-    \underbrace{\MSE_f}_{\text{Residual}} &= \frac{1}{N_f} \sum_{i = 0}^{N_f} \left( \mathcal{L}u^*(x_f^i) - f(x_f^i) \right)^2.
+    \underbrace{\MSE_d}_{\text{data}} &= \frac{w_d}{N_d} \sum_{i = 0}^{N_d} \left( u^*(x_d^i) - u_d^i \right)^2,  \\
+    \underbrace{\MSE_0}_{\text{Initial}} &= \frac{w_0}{N_0} \sum_{i = 0}^{N_0} \left( u^*(x_0^i) - u_0^i \right)^2,  \\
+    \underbrace{\MSE_u}_{\text{Boundary}} &= \frac{w_u}{N_u} \sum_{i = 0}^{N_u} \left( u^*(x_u^i) - g(x_u^i) \right)^2, \\
+    \underbrace{\MSE_f}_{\text{Residual}} &= \frac{w_f}{N_f} \sum_{i = 0}^{N_f} \left( \mathcal{L}u^*(x_f^i) - f(x_f^i) \right)^2.
 \end{split}
 \end{equation*}
 In this case, $(x_d^i,u_d^i)_{i=1}^{N_d}$ is a sample of data, $u_0^i$ is our initial condition, and $N_d,N_0,N_u,N_f$ is the number of data-, initial-, boundary-, and residual points on which the loss is calculated respectively. $w_d,w_0,w_u,w_f$ are the respective weights given to each loss. 
@@ -120,7 +120,7 @@ The $\MSE_d$ can also be dropped, leading to unsupervised training, however this
 In addition, with a framework already set up, the process of setting up a PINN is quite simple, in contrast to developing a numerical algorithm.
 
 \subsection{Extended Physics-Informed Neural Networks}
-Extended Physics-Informed Neural Networks (XPINNs), is a generalized space-time domain decomposition algorithm for PINNs initially proposed in \textcite{Jagtap2020ExtendedPN}.
+Extended Physics-Informed Neural Networks (XPINNs) is a generalized space-time domain decomposition algorithm for PINNs initially proposed in \textcite{Jagtap2020ExtendedPN}.
 The key idea is to decompose the domain $\Omega$ into several subdomains $(\Omega_s)_s^N$ such that $\bigcup_{s=1}^{N_\mathrm{sd}}\Omega_s=\Omega$, as illustrated in \autoref{fig:subdomain_comp}.
 The domain interfaces are given by $\Omega_i\cap \Omega_j = \partial\Omega_{ij},\, i\neq j$.
 Each subdomain is then equipped with its own sub-PINN $u^*_s$, and the training and test points associated with its subdomain.
@@ -198,10 +198,7 @@ As we are potentially working with a huge amount of parameters, this is not feas
 Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
 The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
 The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
-Consider as an example the function
-\begin{equation}
-    f(x) = g(x) \cdot h(x),
-\end{equation}
+Consider as an example the function $f(x) = g(x) \cdot h(x)$,
 with derivative
 \begin{equation}
     f'(x) = g'(x) h(x) + g(x) h'(x).
