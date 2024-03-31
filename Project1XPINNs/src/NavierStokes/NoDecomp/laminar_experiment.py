@@ -65,7 +65,6 @@ def navier_stokes_residual_factory(index: int, nu: float, weight: int = 1) -> LF
     def interior_loss(params: Params, points: dict[str, Array]) -> Array:
         pts = points["interior"]
         return weight * 2 * np.mean(v_residual(params, pts) ** 2)
-
     return interior_loss
 # Good until here
 
