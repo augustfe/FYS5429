@@ -44,7 +44,7 @@ def diffusion_term(params: Params, xy: Array):
 p = lambda params, xy: model(params, xy)[1]
 d_p = grad(p, argnums=1)
 
-def navier_stokes_residual_factory(index: int, nu:float) -> LFunc:
+def navier_stokes_residual_factory(index: int, nu:float, weight : int = 1) -> LFunc:
 
     def residual(params, xy):
         return advection_term(params, xy) - nu* diffusion_term(params, xy) + d_p(params, xy)
@@ -54,7 +54,7 @@ def navier_stokes_residual_factory(index: int, nu:float) -> LFunc:
     
     def interior_loss(params: Params, points: dict[str, Array]) -> Array:
         pts = points["interior"]
-        return np.mean(v_residual(params, pts) ** 2)
+        return weight * 2 * np.mean(v_residual(params, pts) ** 2)
     
     
     return interior_loss
@@ -73,7 +73,7 @@ def uv(params: Params, xy: Array) -> Array:
 def boundary_loss_factory2(inflow_func: Callable[[Array], Array], nu:float, weights:Tuple[int, int, int, int]= (1,1,1,1)) -> LFunc:
     
     def left_boundary_loss(params, xy):
-        return np.sum(np.square(uv(params, xy) - inflow_func(xy))) #(u - inflow)**2 + v**2
+        return np.sum(np.square()) #(u - inflow)**2 + v**2
     
     def wall_boundary_loss(params, xy):
         return np.sum(np.square(uv(params, xy))) #u**2 + v**2
@@ -105,29 +105,29 @@ def boundary_loss_factory2(inflow_func: Callable[[Array], Array], nu:float, weig
     return boundary_loss
 
 p0 = xpinn.PINNs[0]
-p0.boundary_loss = boundary_loss_factory2(inflow_func, nu=0.001)
-p0.interior_loss = navier_stokes_residual_factory(0, nu=0.001)
+p0.boundary_loss = boundary_loss_factory2(inflow_func, nu=0.001, weights = (20, 1,  1, 1))
+p0.interior_loss = navier_stokes_residual_factory(0, nu=0.001, weight = 20)
 p0.create_loss()
 
-shape = [2] + 20*[40] + [2]
+shape = [2] + 25*[20] + [2]
 
 exponential_decay = optax.exponential_decay(
         init_value=0.0001,
-        transition_steps=2000,
-        transition_begin=4000,
+        transition_steps=750,
+        transition_begin=3000,
         decay_rate=0.1,
         end_value=0.0000001,
     )
-optimizer = optax.adam(learning_rate=exponential_decay)
+optimizer = optax.adam(learning_rate=0.0001)
 
 xpinn.PINNs[0].init_params(shape, optimizer)
-load_model_iter = 5000
-our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" / f"ADAM_6000_JUNMAIO_x64_2100"
-xpinn.load_model(our_model_path)
+#load_model_iter = 5000
+#our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" / f"ADAM_6000_JUNMAIO_x64_2100"
+#xpinn.load_model(our_model_path)
 
-n_iter = 6000
+n_iter = 5000
 losses = xpinn.run_iters(n_iter)
 
 #ab[ #inetional syntax error. DON'T RUN THIS CELL unless you want to save/overwrite the model
-our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" /f"ADAM_12000_JUNMAIO_x64_2100_2"
+our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" /f"ADAM_12000_JUNMAIO_x64_2100_small_newsum"
 xpinn.save_model(our_model_path)
