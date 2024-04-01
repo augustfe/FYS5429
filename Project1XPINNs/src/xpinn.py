@@ -106,6 +106,16 @@ class XPINN:
         for pinn, size in zip(self.PINNs, sizes):
             pinn.init_params(size, optimizer)
 
+    def set_optimizer(self, optimizer) -> None:
+        """Set the optimizer for each PINN.
+
+        Args:
+            optimizer ([type]): Optax compatible optimizer
+        """
+        for pinn in self.PINNs:
+            pinn.optimizer = optimizer
+            pinn.optstate = optimizer.init(pinn.params)
+
     def transfer_interface_values(self) -> None:
         """Communicate relevant values across each interface."""
         for interface in self.Interfaces:
@@ -222,9 +232,10 @@ class XPINN:
     def load_model(self, path: str | Path) -> None:
         path = Path(path)
 
-        # store self.losses
-        with open(path / "losses.npy", "rb") as f:
-            self.losses = np.load(f)
+        # store self.losses, if they exist (old models don't have them)
+        if Path(path / "losses.npy").exists():
+            with open(path / "losses.npy", "rb") as f:
+                self.losses = np.load(f)
 
         for i, pinn in enumerate(self.PINNs):
             pinn.load_model(path / f"pinn_{i}")
