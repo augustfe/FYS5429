@@ -198,7 +198,10 @@ As we are potentially working with a huge amount of parameters, this is not feas
 Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
 The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
 The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
-Consider as an example the function $f(x) = g(x) \cdot h(x)$,
+Consider as an example the function
+\begin{equation}
+    f(x) = g(x) \cdot h(x),
+\end{equation}
 with derivative
 \begin{equation}
     f'(x) = g'(x) h(x) + g(x) h'(x).
