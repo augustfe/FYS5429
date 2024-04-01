@@ -3,7 +3,7 @@ import sys
 import jax.numpy as np
 import numpy as onp
 import optax
-from jax import vmap
+from jax import vmap, lax
 from tqdm import tqdm
 
 from base_network import neural_network
@@ -15,12 +15,25 @@ from poisson.poisson_utils import (
 )
 from utils import data_path
 from xpinn import XPINN
+from type_util import Array
 
 
-def rhs(x):
-    return np.where(
-        (x[0] >= 0.25) & (x[0] <= 0.75) & (x[1] >= 0.25) & (x[1] <= 0.75), -1, 0
-    )
+def rhs(point: Array) -> Array:
+    """The right-hand side of the Poisson equation.
+
+    Args:
+        point (Array): A point in the domain.
+
+    Returns:
+        Array: The value of the right-hand side at the point.
+    """
+    x = point[0]
+    y = point[1]
+    x_cond = (0.25 <= x) & (x <= 0.75)
+    y_cond = (0.25 <= y) & (y <= 0.75)
+    condition = x_cond & y_cond
+
+    return lax.select(condition, -1.0, 0.0)
 
 
 if __name__ == "__main__":
@@ -50,7 +63,7 @@ if __name__ == "__main__":
         transition_steps=10000,
         transition_begin=15000,
         decay_rate=0.1,
-        end_value=0.0000001,
+        end_value=0.00001,
     )
     optimizer = optax.adam(learning_rate=exponential_decay)
     xpinn.initialize_params(shapes, optimizer)

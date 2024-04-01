@@ -14,5 +14,5 @@ for ((i=1; i<=$ITERATIONS; i++)); do
     python3 XPINN_points.py
 
     # Run XPINN_experiment.py with the iteration number as an argument
-    python3 XPINN_experiment.py $i
+    python3 XPINN_plots.py $i
 done
