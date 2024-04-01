@@ -70,7 +70,7 @@ class Subdomain:
         """
         n_bound = len(self.boundaries)
         if n_bound == 0:
-            return np.array([[],[]]).T
+            return np.array([[], []]).T
 
         boundary_counts = onp.random.multinomial(num_points, [1 / n_bound] * n_bound)
         boundary_points = np.zeros((num_points, 2))
@@ -160,43 +160,66 @@ class Domain:
         for i, subdom in enumerate(self.subdomains):
             args = self.pinn_points[i]
             num_points = int(subdom.boundary_len / total_length * n)
-            #print(num_points)
             args["boundary"] = subdom.create_boundary(num_points)
 
     def create_interface(
-        self, n: int, indexes: tuple[int, int], points: tuple[Array, Array], add_noise: bool = False
+        self,
+        n: int,
+        indexes: tuple[int, int],
+        points: tuple[Array, Array],
+        add_noise: bool = False,
     ) -> None:
         """Generate an interface between two subdomains
 
         Args:
             n (int): Number of points to create
-            indexes (tuple[int, int]): Indexes of the subdomain
-            points (tuple[Array, Array]): Start and end points of the interface
+            indexes (tuple[int, int]): Indexes of the subdomains
+            points (tuple[Array, Array]): Points to create the interface between
+            add_noise (bool, optional): Whether to add noise to the interface. Defaults to False.
+
+        Raises:
+            NotImplementedError: Noise not implemented
         """
+        if add_noise:
+            raise NotImplementedError("Noise not implemented")
+
         start, end = points
         i, j = sorted(indexes)
 
         inter_points = np.linspace(start, end, n)
-        #if add_noise:
-            #### TODO: 
         self.interfaces[(i, j)].append(inter_points)
 
-    def find_overlap(
-            self, indexes: tuple[int,int]
-    ) -> None:
-        """Pick out overlapping points to use for interface
+    def find_overlap(self, indexes: tuple[int, int]) -> None:
+        """Find the overlap between two subdomains
+
+        Args:
+            indexes (tuple[int, int]): Indexes of the subdomains
         """
         i, j = sorted(indexes)
-        subdomain_i_points = onp.concatenate((self.pinn_points[i]["interior"] , self.pinn_points[i]["boundary"]))
-        subdomain_j_points = onp.concatenate((self.pinn_points[j]["interior"] , self.pinn_points[j]["boundary"]))
-        nrows,ncols = subdomain_i_points.shape
+        subdomain_i_points = onp.concatenate(
+            (
+                self.pinn_points[i]["interior"],
+                self.pinn_points[i]["boundary"],
+            )
+        )
+        subdomain_j_points = onp.concatenate(
+            (
+                self.pinn_points[j]["interior"],
+                self.pinn_points[j]["boundary"],
+            )
+        )
+        nrows, ncols = subdomain_i_points.shape
 
-        dtype= {'names':[f'f{i}' for i in range(ncols)],
-                'formats': ncols*[subdomain_i_points.dtype]}
-        overlap =onp.intersect1d(subdomain_i_points.view(dtype),subdomain_j_points.view(dtype))
-        overlap = overlap.view(subdomain_i_points.dtype).reshape(-1,ncols)
+        dtype = {
+            "names": [f"f{i}" for i in range(ncols)],
+            "formats": ncols * [subdomain_i_points.dtype],
+        }
+        overlap = onp.intersect1d(
+            subdomain_i_points.view(dtype), subdomain_j_points.view(dtype)
+        )
+        overlap = overlap.view(subdomain_i_points.dtype).reshape(-1, ncols)
 
-        self.interfaces[(i,j)].append(overlap)
+        self.interfaces[(i, j)].append(overlap)
 
     def create_testing_data(self, n: int, lower: list[int], upper: list[int]) -> None:
         """Create the testing data for the XPINN
@@ -228,7 +251,7 @@ class Domain:
         filename = Path(filename)
         if not filename.suffix == ".json":
             raise ValueError("Filename must have a .json extension")
-        
+
         filename.parent.mkdir(parents=True, exist_ok=True)
 
         if train:

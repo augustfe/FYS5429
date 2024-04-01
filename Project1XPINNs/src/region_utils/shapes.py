@@ -127,7 +127,7 @@ def _point_inside_poly(point: Array, affine_segments: Array, vertices: Array) ->
 def _get_side(affine_segment: Array, affine_point: Array) -> bool:
     """Calculate which side of the line a point lies.
 
-    We use the cross product in order to check which side of the line we are on
+    We use the cross product in order to check which side of the line we are on.
 
     lax.select(pred, on_true, on_false)
     is equivalent to

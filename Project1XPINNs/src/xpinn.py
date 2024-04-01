@@ -160,6 +160,14 @@ class XPINN:
             pinn.params, pinn.optstate = params, optstate
 
     def run_iters(self, num_epoch: int) -> Array:
+        """Run the optimization for the given number of iterations.
+
+        Args:
+            num_epoch (int): Number of iterations to run
+
+        Returns:
+            Array: Losses for each PINN
+        """
         self.losses = onp.zeros((len(self.PINNs), num_epoch))
 
         print_num = max(num_epoch // 10, 1)
@@ -181,7 +189,17 @@ class XPINN:
 
         return np.asarray(self.losses)
 
-    def predict(self, input_file: str | Path = None):
+    def predict(self, input_file: str | Path = None) -> tuple[list, list]:
+        """Predict the values for each PINN.
+
+        Args:
+            input_file (str | Path, optional):
+                JSON-file containing the information about the domain/subdomain points.
+                Defaults to None, and training points are utilized.
+
+        Returns:
+            tuple[list, list]: List of points and predictions for each PINN
+        """
         if input_file:
             main_args = {}
             with open(input_file) as infile:
@@ -208,6 +226,11 @@ class XPINN:
         return total_points, predictions
 
     def save_model(self, path: str | Path) -> None:
+        """Save the model to the given path.
+
+        Args:
+            path (str | Path): Path to save the model
+        """
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
 
@@ -215,6 +238,11 @@ class XPINN:
             pinn.save_model(path / f"pinn_{i}")
 
     def load_model(self, path: str | Path) -> None:
+        """Load the model from the given path.
+
+        Args:
+            path (str | Path): Path to load the model from
+        """
         path = Path(path)
 
         for i, pinn in enumerate(self.PINNs):

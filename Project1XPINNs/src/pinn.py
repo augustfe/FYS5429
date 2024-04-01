@@ -135,7 +135,15 @@ class PINN:
 
         return loss
 
-    def predict(self, args: dict[str, Array]):
+    def predict(self, args: dict[str, Array]) -> tuple[Array, Array]:
+        """Predict the values of the network at the given points.
+
+        Args:
+            args (dict[str, Array]): Dictionary of points to evaluate the network at
+
+        Returns:
+            tuple[Array, Array]: Points and predictions
+        """
         b = args["boundary"]
         i = args["interior"]
         if b.size == 0:
