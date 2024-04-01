@@ -13,7 +13,7 @@ jax.config.update("jax_enable_x64", True)
 
 data_path = data_path / "NavierStokes"
 
-file_train = data_path / "single_pinn_train_400_2100.json"
+file_train = data_path / "single_pinn_train_400_5000.json"
 file_test = data_path / "test.json"
 activation = np.tanh
 xpinn = XPINN(file_train, activation)
@@ -73,7 +73,7 @@ def uv(params: Params, xy: Array) -> Array:
 def boundary_loss_factory2(inflow_func: Callable[[Array], Array], nu:float, weights:Tuple[int, int, int, int]= (1,1,1,1)) -> LFunc:
     
     def left_boundary_loss(params, xy):
-        return np.sum(np.square()) #(u - inflow)**2 + v**2
+        return np.sum(np.square(uv(params, xy) - inflow_func(xy))) #(u - inflow)**2 + v**2
     
     def wall_boundary_loss(params, xy):
         return np.sum(np.square(uv(params, xy))) #u**2 + v**2
@@ -109,16 +109,16 @@ p0.boundary_loss = boundary_loss_factory2(inflow_func, nu=0.001, weights = (20, 
 p0.interior_loss = navier_stokes_residual_factory(0, nu=0.001, weight = 20)
 p0.create_loss()
 
-shape = [2] + 25*[20] + [2]
+shape = [2] + 25*[30] + [2]
 
 exponential_decay = optax.exponential_decay(
-        init_value=0.0001,
-        transition_steps=750,
-        transition_begin=3000,
+        init_value=0.001,
+        transition_steps=1000,
+        transition_begin=2000,
         decay_rate=0.1,
-        end_value=0.0000001,
+        end_value=0.00001,
     )
-optimizer = optax.adam(learning_rate=0.0001)
+optimizer = optax.adam(learning_rate=exponential_decay)
 
 xpinn.PINNs[0].init_params(shape, optimizer)
 #load_model_iter = 5000
@@ -129,5 +129,5 @@ n_iter = 5000
 losses = xpinn.run_iters(n_iter)
 
 #ab[ #inetional syntax error. DON'T RUN THIS CELL unless you want to save/overwrite the model
-our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" /f"ADAM_12000_JUNMAIO_x64_2100_small_newsum"
+our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" /f"ADAM_5000_JUNMAIO_x64_5000"
 xpinn.save_model(our_model_path)
