@@ -92,6 +92,7 @@ def plot_domain(
     savepath: Path,
     title: str,
     save_name: str,
+    axis_labels: tuple[str, str] = ('x', 'y'),
 ) -> None:
     """Plot the domain of the PINNs.
 
@@ -129,8 +130,8 @@ def plot_domain(
             )
 
     plt.legend()
-    plt.xlabel("$x$")
-    plt.ylabel("$t$")
+    plt.xlabel(f"${axis_labels[0]}$")
+    plt.ylabel(f"${axis_labels[1]}$")
     plt.title(title)
     plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
     plt.show()
