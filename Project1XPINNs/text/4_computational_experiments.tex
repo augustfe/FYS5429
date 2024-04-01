@@ -115,7 +115,7 @@ This is a promising result before moving on to more difficult problems.
 
 \subsection{Poisson Equation}
 \subsubsection{Problem Formulation}
-In this subsection, we consider a two-dimensional Poisson equation with residual.
+In this subsection, we consider a two-dimensional inhomogeneous Poisson equation with residual.
 The problem is a second order linear PDE, and is defined as
 \begin{align}\label{eq:poisson}
 \begin{cases}
@@ -139,7 +139,7 @@ which is displayed in \autoref{fig:exact_smooth}.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\linewidth]{Project1XPINNs/figures/Poisson/smooth_Poisson_true.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/Poisson/smooth_Poisson_true.png}
     \caption{The exact analytical solution to the Poisson equation with continuous residual.}
     \label{fig:exact_smooth}
 \end{figure}
@@ -157,7 +157,7 @@ We train both cases for $2\times 10^5$ iterations. For our testing, we consider 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\linewidth]{Project1XPINNs/figures/Poisson/poisson_train_points.pdf.pdf}
+    \includegraphics[width=0.7\linewidth]{Project1XPINNs/figures/Poisson/poisson_train_points.pdf.pdf}
     \caption{Training points with the XPINN decomposition for the Poisson equation. The PINN is given the same points, without the interface points.}
     \label{fig:decomp_poisson}
 \end{figure}
@@ -176,9 +176,13 @@ The residual is given as a discontinuous form
 The reference solution is computed numerically using the \verb|poissonpy| package \cite{poissonpy} on a uniform test mesh with 1 000 000 points, displayed in \autoref{fig:exact_discontinuous}.
 We apply a 9 layer neural network with 20 hidden units, using the $\tanh$ activation function.
 Again, we apply 900 internal, 120 boundary and 80 interface points for training the XPINN model, as in \autoref{fig:decomp_poisson}.
-\textsc{Adam} is again used with the same exponential decay rate, and the solvers are run for $2\times 10^5$ iterations.
-Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer, however this method is not implemented in our chosen optimization library \verb|optax|. 
-Adapting our implementation to be compatible with \verb|jaxopt| \cite{jaxopt_implicit_diff}, which includes LBFGS, falls outside the scope of this project.
+Additionally, we apply 20 weights to the boundary conditions for the PINN, and 20 for boundary and interface conditions for our XPINN. 
+\textsc{Adam} is again used, and the solvers are run for $2\times 10^5$ iterations. The exponential decay rate is the same as in the continuous experiment, although the minimum learning rate is set as $10^{-5}$.
+
+Note that the paper by \textcite{XPINN_generalize} uses the LBFGS optimizer, however this method is not implemented in our chosen optimization library \verb|optax|.
+LBFGS is available in \verb|JAXopt| \cite{jaxopt_implicit_diff}.
+However, \verb|JAXopt| is currently being merged into \verb|optax|.
+Adapting our implementation to be compatible with \verb|JAXopt| falls outside the scope of this project.
 
 \begin{figure}[!h]
     \centering
@@ -202,23 +206,21 @@ This is as expected by the argument of \textcite{XPINN_generalize}, as the domai
 
 \begin{table}[h]
 \caption{Median, minimum and maximum of the relative $L^2$-errors for the Poisson equation with continuous residual achieved by the PINN and XPINN.}
-    \centering
-    \begin{tabular}{r|c|c|c}\toprule
-     & Median & Minimum & Maximum
-    \\
+\centering
+\begin{tabular}{r|c|c|c}\toprule
+     & Median & Minimum & Maximum \\
     \colrule
-    PINN & $1.37\cdot 10^{-3}$ &  $8.4 \cdot 10^{-4}$ & $2.16 \cdot 10^{-3}$ 
-    \\
-    XPINN & $2.82\cdot 10^{-3} $ &  $1.23 \cdot 10^{-3}$ & $5.42 \cdot 10^{-3}$
-    \\
+    PINN & $1.37\cdot 10^{-3}$ &  $8.4 \cdot 10^{-4}$ & $2.16 \cdot 10^{-3}$ \\
+    XPINN & $2.82\cdot 10^{-3} $ &  $1.23 \cdot 10^{-3}$ & $5.42 \cdot 10^{-3}$ \\
     \botrule
-    \end{tabular}
-    \label{table:cont_poisson}
+\end{tabular}
+\label{table:cont_poisson}
+\vspace{-0.5cm}
 \end{table}
 \begin{figure}[h!]
     \centering
     \includegraphics[width = 0.8\linewidth]{Project1XPINNs/figures/Poisson/smooth_l2_error_evolution.pdf}
-    \caption{Relative $L^2$ error with median and interquartile range highlighted, for PINN and XPINN.}
+    \caption{Relative $L^2$ error with median and interquartile range highlighted, for continuous residual.}
     \label{fig:rel_l2_smooth_poisson}
 \end{figure}
 
@@ -226,7 +228,7 @@ The PINN and XPINN predictions are shown in \autoref{fig:pinn_smooth_pred} and \
 Note that the error figures are created with the same colorbar, in order to be comparable.
 We note that the significant sources of error for the PINN appear to be surrounding the boundaries.
 The XPINN solution also shows boundary error, but the interface error seems to dominate.
-Optimizing for the different weighting hyper-parameters might lowered the interface error, potentially at the cost of increased boundary error.
+Optimizing for the different weighting hyper-parameters might lower the interface error, potentially at the cost of increased boundary error.
 
 \begin{figure}[h]
     \centering
@@ -277,7 +279,7 @@ Both solvers seem to perform worse on this problem. Notably, the XPINN solver ap
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\linewidth]{Project1XPINNs/figures/Poisson/discrete_xpinn_Poisson_solution.png}
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/Poisson/new_exp/discrete_xpinn_Poisson_solution.png}
     \caption{XPINN prediction with continuous residual.}
     \label{fig:xpinn_disc_pred}
 \end{figure}
@@ -291,22 +293,23 @@ Both solvers seem to perform worse on this problem. Notably, the XPINN solver ap
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\linewidth]{Project1XPINNs/figures/Poisson/discrete_xpinn_Poisson_error.png}
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/Poisson/new_exp/discrete_xpinn_Poisson_error.png}
     \caption{XPINN absolute error with discontinuous residual.}
     \label{fig:xpinn_disc_error}
 \end{figure}
 
 Wondering whether this discrepancy is due a lack of training, we investigated the loss per epoch, shown in \autoref{fig:xpinn_disc_loss}.
-As we see, the loss only sees marginal improvements after 50 000 iterations.
+As we see, the loss only sees marginal improvements after 125 000 iterations.
 The same is seen with the relative $L^2$ error in \autoref{fig:rel_l2_discrete_poisson}, wherein the PINN stabilizes, while the XPINN remains high.
 We therefore believe this is partly due to the reduced number of training points.
 The points are drawn from a uniform distribution, and as the center subdomain is $[0.25, 0.75] \times [0.25, 0.75]$, it receives on average just $25\%$ of the total points.
+In addition, given the symmetric nature of the problem, one can argue for whether evenly spaced points might outperform our choice of uniformly random points.
 
 There might be other issues which we have been unsuccessful in either eliminating or proving, such as not utilizing the LBFGS optimizer, a bug in the code, or something else entirely.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\linewidth]{Project1XPINNs/figures/Poisson/discrete_xpinn_Poisson_losses.pdf}
+    \includegraphics[width=0.9\linewidth]{Project1XPINNs/figures/Poisson/new_exp/discrete_xpinn_Poisson_losses.pdf}
     \caption{Loss per epoch for XPINN on the Poisson equation with discontinuous residual.}
     \label{fig:xpinn_disc_loss}
 \end{figure}
@@ -316,11 +319,12 @@ There might be other issues which we have been unsuccessful in either eliminatin
     \caption{Relative $L^2$ error with median and interquartile range highlighted, for PINN and XPINN with discontinuous residual.}
     \label{fig:rel_l2_discrete_poisson}
 \end{figure}
+\vfill\null
 
 \subsection{Navier-Stokes Equation}
 \subsubsection{Problem Formulation}
-Finally, we consider the Navier-Stokes equation as described in the FEATFLOW benchmark suite \cite{DFG}.
-This problem is a simulation of an incompressible 2D fluid flow hitting a cylinder in a rectangle.
+Finally, we consider the steady Navier-Stokes equation at Reynolds number $Re = 20$ as described in the FEATFLOW benchmark suite \cite{DFG}.
+This problem is a simulation of incompressible 2D fluid flow past a cylinder in a rectangle.
 In the DFG benchmark 2D-1, the PDE conditions are given by
 \begin{equation} \label{eq:NS}
     -\nu \nabla^2 \mathbf{u} + (\mathbf{u} \cdot \nabla)\mathbf{u} + \nabla p = \mathbf{0}, \quad \nabla \cdot \mathbf{u} = 0,
@@ -338,7 +342,7 @@ u_x + v_y = 0.
 
 In order to impose the zero divergence condition, we let our network $\mathcal{N}_\theta$ predict both the stream function $\psi$ and the pressure $p$, with
 \begin{equation}
-    \mathcal{N}_\theta : \mathbb{R}^3 \to \mathbb{R}^2, \quad (x,y,t)\to (\psi, p).
+    \mathcal{N}_\theta : \mathbb{R}^2 \to \mathbb{R}^2, \quad (x,y)\to (\psi, p).
 \end{equation}
 We obtain $u$ and $v$ from the equations $u=\psi_y$ and $v=-\psi_x$.
 
