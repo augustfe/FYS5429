@@ -14,7 +14,7 @@ LFunc = Callable[[Params, dict[str, Array]], Array]
 
 
 def boundary_loss_factory(
-    pinn_model: PINN, target: float | Array, weight: float = 1
+    pinn_model: PINN, target: float | Array, weight: float = 1.0
 ) -> LFunc:
     """
     Factory for generating the boundary loss for the Poisson problem for Dirichlet boundary conditions.
@@ -36,7 +36,7 @@ def boundary_loss_factory(
 
 
 def interior_loss_factory(
-    pinn_model: PINN, rhs: Callable[[Array], Array] | Array, weight: int = 1
+    pinn_model: PINN, rhs: Callable[[Array], Array] | Array, weight: float = 1.0
 ) -> LFunc:
     """
     Factory for generating the interior loss for the Poisson problem and the residual in the problem.
@@ -73,7 +73,7 @@ def interior_loss_factory(
 
 
 def interface_loss_factory(
-    xpinn_model: XPINN, i: int, j: int, weight: float = 1
+    xpinn_model: XPINN, i: int, j: int, weight: float = 1.0
 ) -> LFunc:
     a, b = sorted([i, j])
     pi = xpinn_model.PINNs[i]
@@ -85,7 +85,7 @@ def interface_loss_factory(
         # res_ij = 0
 
         val_j = args[f"interface val {j}"]
-        avg_ij = np.mean(((pi.v_model(params, inter_points) - val_j) / 2) ** 2)
+        avg_ij = np.mean(((pi.v_model(params, inter_points) - val_j) / 2.0) ** 2)
         # avg_ij = 0
 
         return weight * (res_ij + avg_ij)
