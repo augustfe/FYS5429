@@ -1,13 +1,13 @@
 The resolution of Partial Differential Equations (PDEs) underpins many scientific and engineering challenges.
 PDEs model the behaviour of a system of multiple variables with respect to its derivatives, where the problem at hand is to determine the function, rather than a number.
-It is often cumbersome, or impossible, to determine an analytical solution to a PDE arising from real-world conditions, which has led to the development of numerous numerical methods.
-These methods arise from numerical analysis, providing certainty about the validity of such results.
+It is often cumbersome, or impossible, to determine the analytical solution of a PDE arising from real-world conditions, which has led to the development of numerous numerical methods.
+A benefit of these numerical methods, is that the theoretical groundwork behind them has been extensively explored, making them more analytically transparent.
 However, the computational and analytical burdens associated with implementing such methods are often costly.
-As neural networks have a proven capacity of being able to act as universal approximators of functions, it is therefore natural to explore whether they are capable of finding the solution to PDEs.
+As neural networks have a proven capacity of being able to act as universal approximators of functions \cite{Cybenko1989ApproximationBS}, it is therefore natural to explore whether they are capable of solving PDEs.
 
 A large part of the recent advancements in machine learning can be contributed to a higher degree of data availability and increased computational resources.
 With problems involving PDEs however, data acquisition can be an issue in and of itself.
-Due to this, recent methods combat this through incorporating the under lying knowledge we have about the system directly into the training of the neural network, in a framework aptly named Physics-Informed Neural Networks (PINNs) in \textcite{RAISSI2019686}.
+Due to this, recent methods combat this through incorporating the underlying knowledge we have about the system directly into the training of the neural network, in a framework aptly named Physics-Informed Neural Networks (PINNs) in \textcite{RAISSI2019686}.
 With these networks, we gain a greater degree of certainty regarding the accuracy of the predictions, as they inherently attempt to abide by the physical laws of the system.
 
 This is primarily done through punishing the PINN in the training stage for not adhering to the PDE conditions.
@@ -24,30 +24,7 @@ We attempt to reproduce some of the results from \textcite{XPINN_generalize}.
 In order to achieve this, we provide a framework for the implementation of such problems, with a focus on modularity in order to accommodate for a wide variety of problems.
 We therefore utilize \verb|JAX| \cite{jax2018github} in order to achieve good performance in \verb|Python|, with \verb|Optax| \cite{deepmind2020jax} in order to perform the optimization steps.
 
-
-
-
-% A typical Neural Network (\textcolor{red}{under supervised training, or does this hold in general?})is trained through measuring how well the model is able to predict a set of labeled data, often through the Mean Squared Error (MSE). The cost function underpinning the network can in this case be
-% \begin{equation}
-%     \mathcal{C}(\boldsymbol{\theta}; \boldsymbol{x}, \boldsymbol{y}) = \lVert \boldsymbol{y} - \mathcal{N}_{\boldsymbol{\theta}}(\boldsymbol{x}) \rVert_2,
-% \end{equation}
-% where $\boldsymbol{y}$ are the target values, $\mathcal{N}_\theta(\cdot)$ is the realization of the network given the parameters $\boldsymbol{\theta}$ and the corresponding input values $\boldsymbol{x}$. 
-% A PINN integrates physical constraints directly into its loss function\textcolor{red}{New term, do we need to define?}, effectively guiding the neural network to respect the underlying physics of the problem. \textcolor{red}{This can lessen the burden on sufficiently ubiquitous training data, which often might not be readily available. (Usikker på setningen, men tenker dette er "sannere")}This can often remove the requirement of having labeled data for training, which can be a computationally expensive aspect of solving PDEs in and of itself.
-
-
-% However, solving the Navier-Stokes equation with PINNs is costly. \textcolor{red}{Hvor kom NS fra? Kanskje bedre entry kan være domain decomposition som en klassisk metode for conventional solvers for parallelisering og komplekshet?} So to mitigate our use of computational resources we propose to use the extension of PINNs (XPINNs) through domain decomposition, as presented in \textcite{Jagtap2020ExtendedPN}, which segments the problem domain into subdomains. Each subdomain is then equipped with a PINN. This approach enhances computational efficiency and model accuracy, but also introduces challenges in maintaining continuity and physical fidelity across the domain interfaces.
-
-% By decomposing the computational domain, we aim to reduce the overall complexity\textcolor{red}{ in what way?}, enabling more efficient training and higher-fidelity solutions, especially in scenarios with multifaceted fluid behaviors\textcolor{red}{Her snakker vi mye om fluid. Er det nødvendigvis noe vi bryr oss om?}. We introduce *methodologies* [TODO: hvilke?] to seamlessly integrate subdomain solutions, ensuring consistent flow properties and energy conservation across interfaces. 
-
-To tackle the computational cost of computing the Navier-Stokes equations and the domain decomposition approach, numerical differentiation is one of the most important components.
-We therefore incorporate FLAX, a versatile and efficient neural network library for JAX, to enhance our numerical differentiation processes.
-By leveraging FLAX's capabilities, we aim to streamline the computation of gradients and higher-order derivatives required for the physics-informed loss functions.
-This is useful for the Navier-Stokes equations, where efficient computation of fluid dynamics variables—such as velocity gradients and pressure differentials is important.
-FLAX's integration into our XPINNs framework allows for efficient backpropagation, enabling the automatic adjustment of neural network weights to minimize the loss function that encodes both the PDE constraints and the boundary conditions.
-Another benefit is FLAX's compatibility with JAX's just-in-time compilation and automatic vectorization features which will significantly enhance the computational efficiency of our models, particularly in the parallel processing of multiple subdomains.
-
-Our contributions are twofold:
-First, we develop a robust framework for XPINNs tailored to the Navier-Stokes equations, incorporating domain decomposition techniques to capture the dynamics of fluid flow.
-Second, we implement novel loss function configurations and inter-network communication protocols to ensure physical accuracy and computational efficiency across decomposed domains.
-
-Through this work, we [TODO: hype]
+We begin by covering the necessary preliminaries of neural networks and PDEs, before covering how these topics combine in PINNs.
+Next, we introduce XPINNs, before explaining how automatic differentiation functions.
+Following, we cover the necessary methodology used within our implementation, such as utilizing \textsc{Adam} as our optimizer.
+Finally, we test our implementation on the advection, Poisson and Navier-Stokes equations, comparing the performance against a typical PINN.

@@ -1,19 +1,22 @@
-\documentclass[aps,rmp,reprint,amsmath,amssymb,graphicx,longbibliography]{revtex4-1}
+\documentclass[aps,rmp,reprint,amsmath,amssymb,longbibliography,twocolumn,floatfix]{revtex4-1}
 
 % Include the configuration file
-\input{config.tex}
+\input{Project1XPINNs/config}
 
 \begin{document}
 % \pagenumbering{gobble} 
 
 \title{UX-PINNs: A User-friendly Implementation of Extended Physics-Informed Neural Networks}
+\title{JAXPINNs: Extended Physics-Informed Neural Networks implemented with JAX.}
 
 \author{Femtehjell, Winsvold, Steeneveldt, Johannessen and Hu}
-\affiliation{Department of Mathematics, University of Oslo, N-0316 Oslo, Norway}
+% \affiliation{Department of Mathematics, University of Oslo, N-0316 Oslo, Norway}
+\date{March 2024}
+\affiliation{Department of Mathematics}
 
 
 \begin{abstract}
-\input{text/0_abstract}
+\input{Project1XPINNs/text/0_abstract}
 \end{abstract}
 
 \maketitle
@@ -21,20 +24,24 @@
 \tableofcontents
 
 \section{Introduction}
-\input{text/1_introduction}\label{sec:introduction}
+\input{Project1XPINNs/text/1_introduction}\label{sec:introduction}
 
 \section{Theory}
-\input{text/2_theory}\label{sec:theory}
+\input{Project1XPINNs/text/2_theory}\label{sec:theory}
 
 \section{Method}
-\input{text/3_method}\label{sec:method}
+\input{Project1XPINNs/text/3_method}\label{sec:method}
 
 \section{Computational Experiments}
-\input{text/4_computational_experiments}\label{sec:compexp}
+\input{Project1XPINNs/text/4_computational_experiments}\label{sec:compexp}
 
-\bibliography{Project1XPINNs/References} % add  references to this file
+\section{Conclusion}
+\input{Project1XPINNs/text/5_conclusion}\label{sec:conclusion}
+
+\newpage
+\bibliography{Project1XPINNs/References} % add references to this file
 
 \appendix
-\input{text/6_appendix}
+\input{Project1XPINNs/text/6_appendix}
 
 \end{document}

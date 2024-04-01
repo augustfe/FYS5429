@@ -1,0 +1,53 @@
+% Discussion
+From the results on the advection equation we demonstrated that XPINNs can capture the wave's propagation, including handling the predicted discontinuities, which suggest they can reliably find solutions close to the analytical benchmarks.
+They are still slightly outperformed by a less computationally costly single PINN, however our aim of this demonstration was to show that they give comparable results.
+XPINNs are evidently superfluous for simple problems, but have adequate performance to be considered for more complex problems.
+
+In the case of the Poisson equation, our findings indicate that while XPINNs can manage both continuous and discontinuous residuals.
+As expected the XPINN underperforms for solving the Poisson equation.
+We also get quantitatively worse results than \textcite{XPINN_generalize}, however this can likely be contributed to the fact that we use \textsc{Adam} as our optimizer while they utilize LBFGS, which is a quasi-Newton method expected to perform better.
+Our results are qualitatively not too far off from the analytical solution, however they are again outperformed by a singular PINN.
+% Our results are qualitatively not that far off from the analytical solution as the pattern is visible, but the magnitude of the predictions are off.
+
+% We expect to better results with our code if we use the LBFGS optimizer when it is released for Optax.
+
+% Navier-Stokes
+
+One of the primary benefits of XPINNs is the inherent capacity for parallelization.
+However, we were not able to implement this, meaning we were not able to get a computational performance boost while training the XPINNs.
+In addition, introducing interface losses might complicate the loss landscape entirely, such that more powerful optimization algorithms are necessary.
+These methods include Energy Natural Gradient Descent \cite{müller2023achieving}, which yielded orders of magnitude lower errors, and learning rate free algorithms \cite{sharrock2023learning}, which alleviate the need to tune the learning rate as a parameter while performing remarkably well.
+
+This leads us to another challenge we ran into with the XPINN, wherein we introduce a number of new hyperparameters through the MSE in \eqref{eq:PINNMSE}, which needs to be balanced against the interface losses.
+This issue is unavoidable with XPINNs, leading to a more complex tuning stage.
+\textcite{Hu_2023} attempts to alleviate this through the introduction of Augmented PINNs (APINNs), which present a natural evolution of XPINNs.
+Here, the domain is decomposed through the use of gating functions, rather than hard boundaries.
+Thus, interface losses are eliminated entirely, in addition to each sub-PINN gaining access to all of the available training data.
+We believe further work should be focused on exploring and utilizing APINNs, rather than optimizing XPINNs further.
+% Possible amelioratons
+
+Another avenue for exploration is within the realm of how the weights of the network are set.
+Recently, 1.58bit models \cite{ma2024era} have been developed, where in each weight $W_{ij}$ of the networks in constrained to be in $\{-1, 0, 1\}$, rather than the 32-bit or 64-bit floating point numbers used today.
+This greatly reduce the physical size of networks, while seemingly performing similarly.
+It also opens an avenue for a reduction in the energy usage, as with a new computational architecture, the costly multiplication operations can be eliminated entirely.
+In an era where cutting edge models are trained it huge data centers, this represents a vital development withing sustainable computing.
+
+Machine learning seems to be increasingly developing towards a direction where models are hand-tuned based on the problem at hand, rather than being brute force approximators.
+XPINNs serve as one such specialization focused on the resolution of PDEs, representing an ever complex machine learning landscape.
+
+% Large Language Models (LLMs), such as LLaMa \cite{touvron2023llama}, contain billions of parameters.
+% Recent work has explored 1.58bit models \cite{ma2024era}, where each weight $W_{ij}$ is constrained to be in $\{-1, 0, 1\}$, in order to reduce the size of the models.
+% Using simpler weights has the potential benefit of reducing the energy usage associated with training the models.
+% This more nuanced approach exemplifies the direction the field of machine learning seems to be moving, wherein models are specialized based on the problem at hand, rather than being brute force approximators.
+
+
+% Conclusion
+% Based on our findings XPINNs do not seem to be the final advancement in the development of PINNs.
+% The constraints arising from diminished data availability, coupled with the emergence of interface losses, do not seem to be effectively counterbalanced by the solutions we were able to produce.
+% Augmented Physics-Informed Neural Networks (APINNs), introduced in \textcite{Hu_2023}, act as a natural evolution of XPINNs.
+% With APINNs, gating functions serve as the equivalent of the domain decomposition presented in this paper.
+% Using this methodology, each sub-PINN has access to all of the training data, and there are no hard boundaries introduced.
+
+% This is not to say that XPINNs are without merit, however we believe that further work should rather be placed on APINNs.
+% Another avenue for exploration is within the chosen optimizer.
+% Methods such as Energy Natural Gradient Descent \cite{müller2023achieving} have performed well in conjunction with PINNs, while learning rate free algorithms based on coin-betting ideas \cite{sharrock2023learning} perform remarkably well without the necessity of tuning the learning rate.

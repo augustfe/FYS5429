@@ -1,1 +1,6 @@
-\lipsum[1-1] 
+We develop a framework in order to simplify the implementation of extended physics-informed neural networks (XPINNs).
+The proposed implementation aims to simplify the process of setting up an XPINN, through automating the domain decomposition and initial set up of the networks.
+This allows the user to focus on the problem specific details of a given issue, rather than the underlying details of how everything is calculated and communicated.
+With this, we were able to utilize XPINNs for solving a number of different partial differential equations (PDEs) without having to worry about errors in the underlying network.
+We compared our results on the advection, Poisson and Navier-Stokes equations with that of a singular physics-informed neural network (PINN), getting worse, but comparable, results.
+As XPINNs decompose the domain, each sub-PINN is trained on a portion of the total points available, and without implementing parallelization, we were not able to increase the number of points without also increasing the total computational time.
