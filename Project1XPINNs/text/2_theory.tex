@@ -60,24 +60,23 @@ where $|\alpha| = \alpha_1 + \alpha_2 + \ldots + \alpha_n$.
 When considering a function $u(x,y)$, we will denote $\frac{\partial u}{\partial x}$ as $u_x$, $\frac{\partial^2 u}{\partial x^2}$ as $u_{xx}$, and so on.
 We will when discussing general PDEs denote the differential operator characterizing the PDE by $\mathcal{L}$.
 
-An example of a PDE is Poisson's equation, defined by
+An example of a PDE is Poisson's equation, which is characterized by
 \begin{equation*}
     u_{xx} + u_{yy} = f \text{ on }\Omega,
 \end{equation*}
-where the residual $f$ is independent of $u$, on the domain $\Omega \in \mathbb{R}^d$, where $d$ is the number of dimensions, including a possible temporal dimension.
-For this equation, we have $\mathcal{L}u = u_{xx} + u_{yy}$, so that the equation can be denoted succinctly as $\mathcal{L}u = f$.
+where the residual $f$ is independent of $u$, on the domain $\Omega \in \mathbb{R}^d$, where $d$ is the number of dimensions.
+In the 2D case, we have $\mathcal{L}u = u_{xx} + u_{yy}$, so that the equation can be denoted succinctly as $\mathcal{L}u = f$.
 
 We will also come across the differential operator $\nabla$.
 For a problem in three physical dimensions, $\nabla$ is defined as $\nabla = \frac{\partial}{\partial x}\boldsymbol{x} + \frac{\partial}{\partial y}\boldsymbol{y} + \frac{\partial}{\partial z}\boldsymbol{z}$, where $\boldsymbol{x},\boldsymbol{y},\boldsymbol{z}$ are the three-dimensional Euclidean unit vectors.
 
 When considering time-dependent PDEs for physical problems, we frequently require initial and boundary conditions.
-Initial conditions are conditions for values at $t=0$, and boundary conditions are value conditions on the physical boundaries of the problem.
+Initial conditions are conditions for values at $t=0$, and boundary conditions are conditions on the physical boundaries of the problem.
 Thus, both conditions are defined on the boundary $\partial\Omega$ of our spatial-temporal domain, and we treat them similarly.
-In this paper we encounter Dirichlet-type boundary conditions (also referred to as first-type boundary conditions), where the value of the function on the boundary is given.
+In this paper we encounter Dirichlet-type boundary conditions, where the value of the function on the boundary is given.
 We return to the Poisson equation as an example;
 we have for the function $u(x,y)$, $(x,y) \in [0,1]\times [0,1]$, the boundary conditions $u(0,y)=u(1,y)=u(x,0)=u(x,1) = 0$.
-Another important is Neumann (or second-type) boundary conditions.
-This is when the boundary conditions gives the value of the first order derivative in the direction normal to the boundary. 
+Neumann boundary conditions are also ubiquitous. This is when the boundary conditions determine the first order derivative in the direction normal to the boundary. 
 
 To capture these boundary conditions, we introduce a boundary value operator $\mathcal B$ such that we can write $\mathcal B u = g$ on $\partial \Omega$ for all our boundary conditions, for some function $g$ on the boundary $\partial\Omega$.
 Given the PDE operator $\mathcal L$ and the boundary value operator $\mathcal B$, we present the general form of a PDE as
@@ -114,10 +113,12 @@ With this baseline, one can extend the loss function through appending more term
 Note that in $\MSE_f$, we are taking the derivative of the network itself with respect to its output.
 This is done through the use of automatic differentiation, in much the same way the parameters are optimized, described further in \autoref{sec:autodiff}.
 
+The $\MSE_d$ can also be dropped, leading to unsupervised training. However, unsupervised PINNs have been documented to be slower than traditional numerical methods for solving PDEs \cite{en16124558}.
+Nevertheless, with a framework already set up, the process of setting up a PINN is quite simple, in contrast to developing a numerical algorithm.
 
-The total process of applying machine learning techniques can then be quite beneficial, as the process of accruing data, whether that be with measurements, numerically or analytically, can be extremely costly.
-The $\MSE_d$ can also be dropped, leading to unsupervised training, however this can lead to worse results overall.
-In addition, with a framework already set up, the process of setting up a PINN is quite simple, in contrast to developing a numerical algorithm.
+The PINN framework therefore presents a simple methodology to incorporating knowledge about the systems we wish to solve into our neural network training. 
+Moreover, PINNs also retain the data-based learning from machine learning models, allowing the user to train using existing data. 
+This approach has made PINNs particularly suited for inverse problems. Inverse problems involve determining some parameters of our system using data, and are notoriously difficult for traditional methods \cite{Jagtap_2022,garay2023physicsinformed}.
 
 \subsection{Extended Physics-Informed Neural Networks}
 Extended Physics-Informed Neural Networks (XPINNs) is a generalized space-time domain decomposition algorithm for PINNs initially proposed in \textcite{Jagtap2020ExtendedPN}.
@@ -160,7 +161,6 @@ For a single PINN, we amend the loss function with
 \end{equation}
 where $\{u_I^i\}$ is the average predicted value at the interface from each PINN, and $N_I$ is the number of points on the interface. 
 
-% \subsubsection{The use case of XPINN}
 Like traditional domain decomposition algorithms, XPINNs introduce an intuitive parallelization by separating the domain into several subdomains with their own respective neural network where the subdomain solutions can be computed on independent processors.
 Thus, XPINNs might improve the computational efficiency through improved utilization of the processor architecture in a computer.
 
@@ -186,7 +186,7 @@ $\mathcal{C}$ is a deeply nested function as it involves the realization of the 
 Differentiating this with respect to each parameter of the network is therefore quite a costly task.
 
 There are in essence three methods for calculating this derivative, namely numerical, symbolic or automatic differentiation.
-Numerical differentiation relies on the method of finite differences, through the approximation
+Numerical differentiation relies on the method of finite differences, through approximations such as
 \begin{equation}
     f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h} \approx \frac{f(x + h) - f(x)}{h},
 \end{equation}
@@ -197,15 +197,9 @@ As we are potentially working with a huge amount of parameters, this is not feas
 
 Symbolic, or algorithmic, differentiation refers to a process much like one you would use when differentiating by hand.
 The derivatives of elementary functions are hard coded, such that complex expressions can be differentiated through the chain rule.
-The reason we don't utilize this method, is that derivatives have a tendency to grow in size.
-Consider as an example the function
-\begin{equation}
-    f(x) = g(x) \cdot h(x),
-\end{equation}
-with derivative
-\begin{equation}
-    f'(x) = g'(x) h(x) + g(x) h'(x).
-\end{equation}
+The reason we don't utilize this method, is that the expressions have a tendency to grow in size.
+Consider as an example the function $f(x) = g(x) \cdot h(x)$,
+with derivative $f'(x) = g'(x) h(x) + g(x) h'(x)$.
 As a neural network is essentially a deeply nested composite function as described by \eqref{eq:NNreal}, this quickly becomes expensive to compute.
 
 Automatic differentiation tackles this issue through keeping track of which terms are repeated throughout the computation.
@@ -238,7 +232,7 @@ For one derivative, this is not particularly impressive.
 \begin{figure}[h]
 \centering
 \input{Project1XPINNs/text/tikz/backward_autodiff}
-\caption{Automatic differentiation of a feed forward pass of a simple neural network as in \eqref{eq:supersimple_NN}, adapted from \cite{autodiff}.}
+\caption{Automatic differentiation of a simple neural network as in \eqref{eq:supersimple_NN}, adapted from \cite{autodiff}.}
 \label{fig:backward_compgraph}
 \end{figure}
 
