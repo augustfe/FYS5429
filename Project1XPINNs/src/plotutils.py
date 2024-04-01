@@ -87,11 +87,47 @@ def plot_poisson(
     plt.show()
 
 
+def plot_navier_stokes(
+    points: Array,
+    val: Array,
+    title: str,
+    savepath: Path,
+    save_name: str,
+    clim: tuple = None,
+):
+    """Plot the values of the Navier-Stokes equation.
+
+    Args:
+        points (Array): Points to plot
+        val (Array): Values to plot
+        title (str): Title of the plot
+        savepath (Path): Path to save the figure
+        save_name (str): Name of the file to save the figure as
+        clim (tuple): Color limits
+    """
+    # fig, ax = plt.figure()
+    # ax.set_aspect("equal")
+    plt.scatter(points[:, 0], points[:, 1], c=val, cmap="turbo", s=1)
+    plt.xlabel("$x$")
+    plt.ylabel("$y$")
+    plt.xlim(0, 2.2)
+    plt.ylim(0, 0.41)
+    plt.gca().set_aspect("equal", adjustable="box")
+    if clim:
+        plt.clim(clim[0], clim[1])
+    plt.colorbar()
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(savepath / f"{save_name}.png", dpi=300, bbox_inches="tight")
+    plt.show()
+
+
 def plot_domain(
     xpinn: XPINN,
     savepath: Path,
     title: str,
     save_name: str,
+    axis_labels: tuple[str, str] = ("x", "y"),
 ) -> None:
     """Plot the domain of the PINNs.
 
@@ -129,8 +165,8 @@ def plot_domain(
             )
 
     plt.legend()
-    plt.xlabel("$x$")
-    plt.ylabel("$t$")
+    plt.xlabel(f"${axis_labels[0]}$")
+    plt.ylabel(f"${axis_labels[1]}$")
     plt.title(title)
     plt.savefig(savepath / f"{save_name}.pdf", bbox_inches="tight")
     plt.show()
