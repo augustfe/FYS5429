@@ -298,21 +298,36 @@ Both solvers seem to perform worse on this problem. Notably, the XPINN solver ap
 
 Wondering whether this discrepancy is due a lack of training, we investigated the loss per epoch, shown in \autoref{fig:xpinn_disc_loss}.
 As we see, the loss only sees marginal improvements after 50 000 iterations.
+The same is seen with the relative $L^2$ error in \autoref{fig:rel_l2_discrete_poisson}, wherein the PINN stabilizes, while the XPINN remains high.
+We therefore believe this is partly due to the reduced number of training points.
+The points are drawn from a uniform distribution, and as the center subdomain is $[0.25, 0.75] \times [0.25, 0.75]$, it receives on average just $25\%$ of the total points.
 
-\begin{figure}
+There might be other issues which we have been unsuccessful in either eliminating or proving, such as not utilizing the LBFGS optimizer, a bug in the code, or something else entirely.
+
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.9\linewidth]{Project1XPINNs/figures/Poisson/discrete_xpinn_Poisson_losses.pdf}
-    \caption{Loss per epoch for XPINN on the Poisson equation with discrete residual.}
+    \caption{Loss per epoch for XPINN on the Poisson equation with discontinuous residual.}
     \label{fig:xpinn_disc_loss}
+\end{figure}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width = 0.9\linewidth]{Project1XPINNs/figures/Poisson/discrete_l2_error_evolution.pdf}
+    \caption{Relative $L^2$ error with median and interquartile range highlighted, for PINN and XPINN with discontinuous residual.}
+    \label{fig:rel_l2_discrete_poisson}
 \end{figure}
 
 \subsection{Navier-Stokes Equation}
 \subsubsection{Problem Formulation}
-Finally, we consider the Navier Stokes problem as described in the FEATFLOW benchmark suite \cite{DFG}. This problem is a simulation of an incompressible 2D fluid flow hitting a cylinder in a rectangle. In the DFG benchmark 2D-1, the PDE conditions are given by
-\begin{equation}
+Finally, we consider the Navier-Stokes equation as described in the FEATFLOW benchmark suite \cite{DFG}.
+This problem is a simulation of an incompressible 2D fluid flow hitting a cylinder in a rectangle.
+In the DFG benchmark 2D-1, the PDE conditions are given by
+\begin{equation} \label{eq:NS}
     -\nu \nabla^2 \mathbf{u} + (\mathbf{u} \cdot \nabla)\mathbf{u} + \nabla p = \mathbf{0}, \quad \nabla \cdot \mathbf{u} = 0,
 \end{equation}
-where $\nu = 0.001$. In our notation, we will isolate the $x$- and $y$-flow as $u$ and $v$ respectively. From this, we can express the PDEs for the second-order spatial derivatives, as well as the equation for zero convergence due to incompressibility as
+where $\nu = 0.001$.
+In our notation, we will isolate the $x$- and $y$-flow as $u$ and $v$ respectively.
+From this, we can express the PDEs for the second-order spatial derivatives, as well as the equation for zero convergence due to incompressibility as
 \begin{equation}
 \begin{cases}
 -\nu(u_{xx} + u_{yy})+uu_x+vu_y+p_x = 0, \\
