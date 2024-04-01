@@ -54,14 +54,14 @@ This is unsurprising, given the discontinuities along the boundaries.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/0.5_predictions.png}
+    \includegraphics[width=0.7\linewidth]{Project1XPINNs/figures/advection/xpinn_predictions.png}
     \caption{Predictions for the advection equation with XPINN, $\alpha = 0.5$.}
     \label{fig:advection_xpinn_pred}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/0.5_error.png}
+    \includegraphics[width=0.7\linewidth]{Project1XPINNs/figures/advection/xpinn_error.png}
     \caption{Error against true solution, XPINN with $\alpha=0.5$.}
     \label{fig:advection_xpinn_error}
 \end{figure}
@@ -73,7 +73,7 @@ We chose to not optimize this problem fully, as we were more interested in learn
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/Loss per Pinn over 10000 epochs, alpha=0.5_10000.pdf}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/advection_losses.pdf}
     \caption{Loss per epoch for advection XPINN, with $\alpha=0.5$.}
     \label{fig:loss_per_advection}
 \end{figure}
@@ -84,14 +84,14 @@ XPINNs then probably do not have a lot of merit for such a simple problem, espec
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_0.5_predictions.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_advection_predictions.png}
     \caption{Predicted values for the advection equation, with a single PINN.}
     \label{fig:single_ad_pred}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_0.5_error.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/single_advection_error.png}
     \caption{Absolute errors against the true solution, with a single PINN.}
     \label{fig:single_ad_error}
 \end{figure}
@@ -103,14 +103,14 @@ This is a promising result before moving on to more difficult problems.
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/-1_predictions.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/xpinn_stress_predictions.png}
     \caption{Predictions with $\alpha=-1$, same decomposition.}
     \label{fig:alpha-1_pred}
 \end{figure}
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/-1_error.png}
+    \includegraphics[width=0.8\linewidth]{Project1XPINNs/figures/advection/xpinn_stress_error.png}
     \caption{Absolute error with $\alpha=-1$.}
     \label{fig:alpha-1_error}
 \end{figure}
