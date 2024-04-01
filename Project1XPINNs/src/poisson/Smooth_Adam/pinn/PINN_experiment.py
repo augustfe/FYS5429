@@ -1,16 +1,21 @@
-from xpinn import XPINN
-import optax
-from type_util import Array
-from jax import hessian, jacobian, jit, vmap
+import sys
+
 import jax.numpy as np
 import numpy as onp
-import sys
+import optax
+from jax import jit, vmap
 from tqdm import tqdm
-from utils import data_path
-from base_network import neural_network
-from poisson.poisson_utils import boundary_loss_factory, interior_loss_factory, crude_rel_L2
 
-if __name__ == '__main__':
+from base_network import neural_network
+from poisson.poisson_utils import (
+    boundary_loss_factory,
+    interior_loss_factory,
+    crude_rel_L2,
+)
+from utils import data_path
+from xpinn import XPINN
+
+if __name__ == "__main__":
     ### Set files
     name = str(sys.argv[1])
     file = data_path / "poisson_single_pinn_train.json"
@@ -30,7 +35,7 @@ if __name__ == '__main__':
     # rhs
     @jit
     def f(x):
-        return 2. * np.pi**2 * u_star(x)
+        return 2.0 * np.pi**2 * u_star(x)
 
     f_v = f
     f_final = jit(f_v)
@@ -69,18 +74,18 @@ if __name__ == '__main__':
     true_value = u_vmap(total_points).reshape(-1, 1)
     true_integral = np.sqrt(np.sum(true_value**2))
 
-    #Setting the L2 relative errors
+    # Setting the L2 relative errors
     l2_errors = onp.zeros(nr_saved_points + 1)
     l2_errors[0] = crude_rel_L2(total_pred, true_value, true_integral)
-    
+
     for i in tqdm(range(nr_saved_points)):
         ### Run iterations
-        losses = xpinn.run_iters(int(n_iter/nr_saved_points))
-        
+        losses = xpinn.run_iters(int(n_iter / nr_saved_points))
+
         ### Calculate rel l2 error
         _, predictions = xpinn.predict(file_test)
         total_pred = np.concatenate(predictions)
-        l2_errors[i+1] = crude_rel_L2(total_pred, true_value)
+        l2_errors[i + 1] = crude_rel_L2(total_pred, true_value)
 
     print(l2_errors)
     onp.savez(f"results/L2_errors_{name}", l2_errors)

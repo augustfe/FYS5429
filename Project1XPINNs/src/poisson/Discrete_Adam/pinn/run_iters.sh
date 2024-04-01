@@ -10,9 +10,9 @@ python3 PINN_test_points.py
 for ((i=1; i<=$ITERATIONS; i++)); do
     echo "Running iteration $i"
 
-    # Run a.py
+    # Run PINN_points.py
     python3 PINN_points.py
 
-    # Run b.py with the iteration number as an argument
+    # Run PINN_experiment.py with the iteration number as an argument
     python3 PINN_experiment.py $i
 done
