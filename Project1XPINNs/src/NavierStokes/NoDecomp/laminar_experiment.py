@@ -11,6 +11,7 @@ import jax
 
 jax.config.update("jax_enable_x64", True)
 
+print("reading data files")
 data_path = data_path / "NavierStokes"
 
 file_train = data_path / "single_pinn_train_400_5000.json"
@@ -95,20 +96,20 @@ def boundary_loss_factory2(inflow_func: Callable[[Array], Array], nu:float, weig
         wall_pts = points['wall boundary']
         cylinder_pts = points['cylinder boundary']
        
-        left = np.mean(v_left_boundary_loss(params, left_pts) ** 2) * weights[0]
-        right = np.mean(v_right_boundary_loss(params, right_pts) ** 2) * weights[1]
-        wall = np.mean(v_wall_boundary_loss(params, wall_pts) ** 2) * weights[2]
-        cylinder = np.mean(v_wall_boundary_loss(params, cylinder_pts) ** 2) * weights[3]
+        left = np.mean(v_left_boundary_loss(params, left_pts)) * weights[0]
+        right = np.mean(v_right_boundary_loss(params, right_pts)) * weights[1]
+        wall = np.mean(v_wall_boundary_loss(params, wall_pts)) * weights[2]
+        cylinder = np.mean(v_wall_boundary_loss(params, cylinder_pts)) * weights[3]
 
         return left + right + wall + cylinder
     
     return boundary_loss
-
+print("Setting losses")
 p0 = xpinn.PINNs[0]
 p0.boundary_loss = boundary_loss_factory2(inflow_func, nu=0.001, weights = (20, 1,  1, 1))
 p0.interior_loss = navier_stokes_residual_factory(0, nu=0.001, weight = 20)
 p0.create_loss()
-
+print("Setting optimizer")
 shape = [2] + 25*[30] + [2]
 
 exponential_decay = optax.exponential_decay(
@@ -124,7 +125,7 @@ xpinn.PINNs[0].init_params(shape, optimizer)
 #load_model_iter = 5000
 #our_model_path = model_path / "NavierStokes"/ "single_pinn"/ "laminar" / f"ADAM_6000_JUNMAIO_x64_2100"
 #xpinn.load_model(our_model_path)
-
+print("Starting iterations")
 n_iter = 5000
 losses = xpinn.run_iters(n_iter)
 
