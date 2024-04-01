@@ -1,4 +1,13 @@
 % Discussion
+From the results on the advection equation we demonstrated that XPINNs can capture the wave's propagation, including handling the predicted discontinuities, which suggest they can reliably find solutions close to our  analytical benchmarks. They are still slightly outperformed by a less computationally costly single PINN, however our aim of this demonstration was to show that they give comparable results. XPINNs are evidently superfluous for simple problems, but have adequate performance to be considered for more complex problems.
+In the case of the Poisson equation, our findings indicate that while XPINNs can manage both continuous and discontinuous residuals. As expected the XPINN underperforms for solving the Poisson equation. We also get quantitatively worse results than \cite{XPINN_generalize} but this is likely because we use Adam as our optimizer and \cite{XPINN_generalize} uses LBFGS which is a quasi-Newton method expected to perform better. Our results are also qualitatively not that far off from the analytical solution as the pattern is visible, but the magnitude of the predictions are off.
+
+We expect to better results with our code if we use the LBFGS optimizer when it is released for Optax.
+
+% Navier-Stokes
+
+% Possible amelioratons
+
 Extended Physics-Informed Neural Networks represent an interesting development within machine learning.
 Computational models have a tendency to adapt themselves to the constraint placed upon them by the computer architecture available at the time, from early CPU limitations to later memory constraints.
 Currently, the best performing models are trained in large data centers, on huge datasets.
@@ -8,6 +17,7 @@ Large Language Models (LLMs), such as LLaMa \cite{touvron2023llama}, contain bil
 Recent work has explored 1.58bit models \cite{ma2024era}, where each weight $W_{ij}$ is constrained to be in $\{-1, 0, 1\}$, in order to reduce the size of the models.
 Using simpler weights has the potential benefit of reducing the energy usage associated with training the models.
 This more nuanced approach exemplifies the direction the field of machine learning seems to be moving, wherein models are specialized based on the problem at hand, rather than being brute force approximators.
+
 
 % Conclusion
 Based on our findings XPINNs do not seem to be the final advancement in the development of PINNs.
