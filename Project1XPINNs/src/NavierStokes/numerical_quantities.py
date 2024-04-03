@@ -1,7 +1,14 @@
+# fmt: off
+
+
 import jax.numpy as np
 from jax import jit, vmap
 from type_util import Params
+
 from navier_stokes_funcs import model, hess_psi
+
+# fmt: on
+
 
 def drag_lift_force(params: Params, nu: float, n_points: int = 100000):
     points = []
@@ -21,7 +28,8 @@ def drag_lift_force(params: Params, nu: float, n_points: int = 100000):
         )
         norm_vecs.append(
             np.array(
-                [np.cos(2 * np.pi * (i / n_points)), np.sin(2 * np.pi * (i / n_points))]
+                [np.cos(2 * np.pi * (i / n_points)),
+                 np.sin(2 * np.pi * (i / n_points))]
             )
         )
 
@@ -55,7 +63,33 @@ def drag_lift_force(params: Params, nu: float, n_points: int = 100000):
 
     return drag_force.item(), lift_force.item()
 
-params = single_pinn.PINNs[0].params
-drag_force, lift_force = drag_lift_force(params, nu=0.1, n_points=100000)
 
-drag_force, lift_force
+def drag_lift_coefficients(params: Params, nu: float, n_points: int = 100000):
+    drag_force, lift_force = drag_lift_force(params, nu, n_points)
+    U_mean = 0.2
+    L = 0.1
+
+    C_D = 2 * drag_force / (U_mean ** 2 * L)
+    C_L = 2 * lift_force / (U_mean ** 2 * L)
+
+    return C_D, C_L
+
+# Example usage
+# params = xpinn.PINNs[0].params
+# C_D, C_L = drag_lift_coefficients(params, nu = 0.001)
+
+
+def pressure_diff(params: Params):
+    p1 = model(params, np.array((0.15, 0.2)))[1]
+    p2 = model(params, np.array((0.25, 0.2)))[1]
+
+    return p1 - p2
+
+
+# Example usage
+# params = xpinn.PINNs[0].params
+# pressure_diff = pressure_diff(params)
+if __name__ == "__main__":
+    h = hess_psi([np.array([1, 2, 3, 4]).reshape(2, -1),
+                  np.array([1, 2])], np.array([0.2, 0.2]))
+    print(h)

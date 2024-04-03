@@ -42,7 +42,8 @@ def setColors(
     """
     cmap = colormaps.get_cmap(cmap_name)
     if norm_type == "log":
-        norm = mpl.colors.LogNorm(vmin=np.min(variable_arr), vmax=np.max(variable_arr))
+        norm = mpl.colors.LogNorm(vmin=np.min(
+            variable_arr), vmax=np.max(variable_arr))
     elif norm_type == "linear":
         norm = mpl.colors.Normalize(
             vmin=np.min(variable_arr), vmax=np.max(variable_arr)
@@ -115,7 +116,7 @@ def plot_navier_stokes(
     plt.gca().set_aspect("equal", adjustable="box")
     if clim:
         plt.clim(clim[0], clim[1])
-    plt.colorbar()
+    plt.colorbar(orientation='horizontal')
     plt.title(title)
     plt.tight_layout()
     plt.savefig(savepath / f"{save_name}.png", dpi=300, bbox_inches="tight")
@@ -329,7 +330,8 @@ def plot_at_timestep(
     plt.xlabel("Position $x$")
     plt.legend()
     if save:
-        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
+        plt.savefig(
+            savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
     plt.close()
 
 
@@ -364,7 +366,8 @@ def plot_at_timestepEuler(
     plt.xlabel("Position $x$")
     plt.legend()
     if save:
-        plt.savefig(savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
+        plt.savefig(
+            savePath / f"{saveName}_timestep_{t}.pdf", bbox_inches="tight")
     plt.close()
 
 
