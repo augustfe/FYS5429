@@ -1,12 +1,13 @@
 import jax.numpy as np
 import json
 
-from jax import random
+from jax import random, grad, vmap, jit
 from pathlib import Path
 from dataclasses import dataclass
 from type_util import Array, Activator, Params, OptState, Shape
 from pinn import PINN
 import numpy as onp
+import os
 
 
 @dataclass
@@ -142,6 +143,11 @@ class XPINN:
         val_i = pinn_i.v_model(pinn_i.params, points)
         args_j[f"interface val {i}"] = val_i
 
+        model_i = pinn_i.v_model
+        params_i = pinn_i.params
+        args_j[f"params {i}"] = params_i
+        #args_j[f"model {i}"] = model_i
+
     def optimize_iter(self, epoch: int) -> None:
         """One iteration of optimizing the networks.
 
@@ -253,6 +259,12 @@ class XPINN:
 
         for i, pinn in enumerate(self.PINNs):
             pinn.save_model(path / f"pinn_{i}")
+        
+        directory = os.path.dirname(path)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        np.savez(path, array=self.losses)
+
 
     def load_model(self, path: str | Path) -> None:
         """Load the model from the given path.
