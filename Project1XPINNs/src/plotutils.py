@@ -89,7 +89,6 @@ def plot_poisson(
 def plot_navier_stokes(
     points: Array,
     val: Array,
-    title: str,
     savepath: Path,
     save_name: str,
     clim: tuple = None,
@@ -113,7 +112,6 @@ def plot_navier_stokes(
     if clim:
         plt.clim(clim[0], clim[1])
     plt.colorbar(orientation='horizontal')
-    plt.title(title)
     plt.tight_layout()
     plt.savefig(savepath / f"{save_name}.png", dpi=300, bbox_inches="tight")
     plt.show()
