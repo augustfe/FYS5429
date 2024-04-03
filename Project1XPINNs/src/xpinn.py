@@ -64,8 +64,7 @@ class XPINN:
 
             for dkey in item:
                 if dkey != "Internal points" and dkey != "Boundary points":
-                    self.main_args[i][dkey] = np.asarray(
-                        item[dkey], dtype=np.float32)
+                    self.main_args[i][dkey] = np.asarray(item[dkey], dtype=np.float32)
 
             self.main_args[i]["boundary"] = boundary
             self.main_args[i]["interior"] = interior
@@ -146,7 +145,7 @@ class XPINN:
         model_i = pinn_i.v_model
         params_i = pinn_i.params
         args_j[f"params {i}"] = params_i
-        #args_j[f"model {i}"] = model_i
+        # args_j[f"model {i}"] = model_i
 
     def optimize_iter(self, epoch: int) -> None:
         """One iteration of optimizing the networks.
@@ -197,13 +196,11 @@ class XPINN:
             iter_loss = sum(self.losses[:, epoch])
             if epoch % print_num == 0:
                 print(
-                    f"{epoch / num_epoch *
-                        100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
+                    f"{epoch / num_epoch * 100:.2f}% iter = {epoch} of {num_epoch}: Total loss = {iter_loss}"
                 )
 
         print(
-            f"{(epoch+1) / num_epoch * 100:.2f}% iter = {epoch +
-                                                         1} of {num_epoch}: Total loss = {iter_loss}"
+            f"{(epoch+1) / num_epoch * 100:.2f}% iter = {epoch +1} of {num_epoch}: Total loss = {iter_loss}"
         )
 
         return np.asarray(self.losses)
@@ -259,12 +256,11 @@ class XPINN:
 
         for i, pinn in enumerate(self.PINNs):
             pinn.save_model(path / f"pinn_{i}")
-        
+
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
             os.makedirs(directory)
         np.savez(path, array=self.losses)
-
 
     def load_model(self, path: str | Path) -> None:
         """Load the model from the given path.
