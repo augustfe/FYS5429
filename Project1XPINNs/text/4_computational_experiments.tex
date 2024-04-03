@@ -357,10 +357,17 @@ u_x + v_y = 0.
 \end{cases}
 \end{equation}
 
+The domain of the problem is given by
+\vspace{-1mm}
+\begin{align*}
+    \Omega = [0,2.2] \times [0,0.41] \setminus B_r(0.2,0.2), \hspace{4mm} r = 0.05
+\end{align*}
+
 In order to impose the zero divergence condition, we consider the stream function $\psi$ characterizing incompressible flow. $u$ and $v$ can then be obtained through $u=\psi_y$ and $v=-\psi_x$. Our network $\mathcal{N}_\theta$ thus predicts the stream function $\psi$ and the pressure $p$, with
 \begin{equation}
     \mathcal{N}_\theta : \mathbb{R}^2 \to \mathbb{R}^2, \quad (x,y)\to (\psi, p).
 \end{equation}
+
 
 This problem includes three different boundary conditions.
 First, we have the boundary for the upper and lower walls, as well as around the edge of the cylinder.
@@ -388,7 +395,97 @@ Hence, we confirms our target Reynolds number using the cylinder diameter as the
 \end{equation*}
 
 \subsubsection{Results}
-
+\begin{comment}
 We were unable to produce satisfying results for Navier-Stokes.
 This is mainly due the large number of hyper-parameters, and the high computational complexity of the derivatives involved, which restricted our ability to tune as we did not have access to the proper resources required for such tasks.
 We are exceedingly close to including the produced results here, but were unable to include them at this time.
+\end{comment}
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/losses/PINN_losses.pdf}
+    \caption{Loss per epoch for PINN on the Navier-Stokes equation}
+    \label{fig:NS_PINN_loss}
+\end{figure}
+
+
+\par
+Achieving qualitative results required some parameter tuning, of weights for losses, model architecture and decomposition for the XPINN. This was not carried out extensively, but rather through a heuristic approach of trial and error. Given this, it should be recognized that there may be potential to achieve better results. 
+
+The results we chose to present where produced by a PINN which incorporated 25 hidden layers, each with 30 nodes, sticking with the tanh activation function with no weighting on the loss functions. While our XPINN consisted of a decompositon in to two domains given by
+\begin{align*}
+    \Omega_1 =& [0, 0.8] \times [0,0.41] \setminus B_r(0.2,0.2), \hspace{4mm} r = 0.05\\
+    \Omega_2 =& [0.8, 2.2] \times [0, 0.41]
+\end{align*}
+
+With 25 and 10 hidden layers with 30 nodes each respectively for $\Omega_1$ and $\omega2$.
+\par
+The XPINN struggled with the inferface, so in order to aid it's performance we imposed neumann interface conditions on $\psi$ .  That is continuity conditions on the flow field.
+
+\begin{align*}
+    \frac{2}{N_{I^{i,j}}} \sum_{(x,y) \in {I^{i,j}}}^n || \nabla \psi_i(x,y)  - \nabla \psi_j(x,y)||^2
+\end{align*}
+Where $I^{i,j}$ represents interface between PINNs i and j.
+
+Our results are consistent with our previous experiments: our PINN model outperformed the XPINN.
+
+Figure \ref{fig:NS_PINN_loss} illustrates the loss per epoch for our PINN model. The model architecture incorporated 25 hidden layers, each with 30 nodes, sticking with the tanh activation function. Although there was a significant decrease in loss, it did not plateau to the same extent as with our Poisson or advection models. This could suggest that additional training might yield further improvements in performance.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/flow_magnitude_no_decomp.png}
+    \caption{PINN Velocity Magnitude}
+    \label{fig:NS_PINN_FlowMag}
+\end{figure}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/pressure_no_decomp.png}
+    \caption{PINN Pressure}
+    \label{fig:NS_PINN_Pressure}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/streamfunc_no_decomp.png}
+    \caption{PINN Streamfunction}
+    \label{fig:NS_PINN_Streamfunc}
+\end{figure}
+
+Having said that, our PINN successfully replicated the flow plots from the DFG benchmark  \cite{DFG}, as illustrated in Figures \ref{fig:NS_PINN_FlowMag} through \ref{fig:NS_PINN_Streamfunc}. It should be noted on comparison with the DFG results that somewhat different colormaps where used, which may make the plots appear more distinct.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/losses/TwoBox_decomp_losses.pdf}
+    \caption{Loss per epoch for XPINN on the Navier-Stokes equation}
+    \label{fig:NS_XPINN_losses}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/flow_magnitude_two_box.png}
+    \caption{XPINN Velocity Magnitude}
+    \label{fig:NS_XPINN_flow_mag}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/pressure_two_box.png}
+    \title{XPINN Velcoity Magnitude}
+    \label{fig:NS_XPINN_pressure}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/streamfunc_two_box.png}
+    \title{XPINN Velcoity Magnitude}
+    \label{fig:NS_XPINN_flow_mag}
+\end{figure}
+
+
+
+
+
