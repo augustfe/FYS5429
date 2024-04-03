@@ -113,7 +113,8 @@ With this baseline, one can extend the loss function through appending more term
 Note that in $\MSE_f$, we are taking the derivative of the network itself with respect to its output.
 This is done through the use of automatic differentiation, in much the same way the parameters are optimized, described further in \autoref{sec:autodiff}.
 
-The $\MSE_d$ can also be dropped, leading to unsupervised training. However, unsupervised PINNs have been documented to be slower than traditional numerical methods for solving PDEs \cite{en16124558}.
+The $\MSE_d$ can also be dropped, leading to unsupervised training.
+However, unsupervised PINNs have been documented to be slower than traditional numerical methods for solving PDEs \cite{en16124558}.
 Nevertheless, with a framework already set up, the process of setting up a PINN is quite simple, in contrast to developing a numerical algorithm.
 
 The PINN framework therefore presents a simple methodology to incorporating knowledge about the systems we wish to solve into our neural network training. 

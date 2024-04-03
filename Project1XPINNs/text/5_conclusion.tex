@@ -7,9 +7,7 @@ In the case of the Poisson equation, our findings indicate that while XPINNs can
 As expected the XPINN underperforms for solving the Poisson equation.
 We also get quantitatively worse results than \textcite{XPINN_generalize}, however this can likely be contributed to the fact that we use \textsc{Adam} as our optimizer while they utilize LBFGS, which is a quasi-Newton method expected to perform better.
 Our results are qualitatively not too far off from the analytical solution, however they are again outperformed by a singular PINN.
-% Our results are qualitatively not that far off from the analytical solution as the pattern is visible, but the magnitude of the predictions are off.
 
-% We expect to better results with our code if we use the LBFGS optimizer when it is released for Optax.
 
 % Navier-Stokes
 
@@ -30,24 +28,7 @@ Another avenue for exploration is within the realm of how the weights of the net
 Recently, 1.58bit models \cite{ma2024era} have been developed, where in each weight $W_{ij}$ of the networks in constrained to be in $\{-1, 0, 1\}$, rather than the 32-bit or 64-bit floating point numbers used today.
 This greatly reduce the physical size of networks, while seemingly performing similarly.
 It also opens an avenue for a reduction in the energy usage, as with a new computational architecture, the costly multiplication operations can be eliminated entirely.
-In an era where cutting edge models are trained it huge data centers, this represents a vital development withing sustainable computing.
+In an era where cutting edge models are trained in huge data centers, this represents a vital development within sustainable computing.
 
 Machine learning seems to be increasingly developing towards a direction where models are hand-tuned based on the problem at hand, rather than being brute force approximators.
 XPINNs serve as one such specialization focused on the resolution of PDEs, representing an ever complex machine learning landscape.
-
-% Large Language Models (LLMs), such as LLaMa \cite{touvron2023llama}, contain billions of parameters.
-% Recent work has explored 1.58bit models \cite{ma2024era}, where each weight $W_{ij}$ is constrained to be in $\{-1, 0, 1\}$, in order to reduce the size of the models.
-% Using simpler weights has the potential benefit of reducing the energy usage associated with training the models.
-% This more nuanced approach exemplifies the direction the field of machine learning seems to be moving, wherein models are specialized based on the problem at hand, rather than being brute force approximators.
-
-
-% Conclusion
-% Based on our findings XPINNs do not seem to be the final advancement in the development of PINNs.
-% The constraints arising from diminished data availability, coupled with the emergence of interface losses, do not seem to be effectively counterbalanced by the solutions we were able to produce.
-% Augmented Physics-Informed Neural Networks (APINNs), introduced in \textcite{Hu_2023}, act as a natural evolution of XPINNs.
-% With APINNs, gating functions serve as the equivalent of the domain decomposition presented in this paper.
-% Using this methodology, each sub-PINN has access to all of the training data, and there are no hard boundaries introduced.
-
-% This is not to say that XPINNs are without merit, however we believe that further work should rather be placed on APINNs.
-% Another avenue for exploration is within the chosen optimizer.
-% Methods such as Energy Natural Gradient Descent \cite{müller2023achieving} have performed well in conjunction with PINNs, while learning rate free algorithms based on coin-betting ideas \cite{sharrock2023learning} perform remarkably well without the necessity of tuning the learning rate.
