@@ -44,7 +44,8 @@ v_model = vmap(model, (None, 0))
 # #### Advection term
 
 
-def psi(params, xy): return model(params, xy)[0]
+def psi(params, xy):
+    return model(params, xy)[0]
 
 
 hess_psi = hessian(psi, argnums=1)
@@ -54,8 +55,7 @@ v_d_psi_dxy = vmap(d_psi_dxy, (None, 0))
 
 def advection_term(params: Params, xy: Array) -> Array:
     hess = hess_psi(params, xy)
-    processed_hess = np.array(
-        [[-hess[1, 1], hess[0, 1]], [hess[1, 0], -hess[0, 0]]])
+    processed_hess = np.array([[-hess[1, 1], hess[0, 1]], [hess[1, 0], -hess[0, 0]]])
     return processed_hess @ d_psi_dxy(params, xy)
 
 
@@ -70,10 +70,12 @@ def diffusion_term(params: Params, xy: Array):
     v_diffusion = jachessi[1, 0, 1] + jachessi[0, 0, 0]  # psi_xyy + psi_xxx
     return np.array([u_diffusion, -v_diffusion])
 
+
 # #### Pressure
 
 
-def p(params, xy): return model(params, xy)[1]
+def p(params, xy):
+    return model(params, xy)[1]
 
 
 d_p = grad(p, argnums=1)
@@ -84,7 +86,11 @@ d_p = grad(p, argnums=1)
 def navier_stokes_residual_factory(index: int, nu: float, weight: int = 1) -> LFunc:
 
     def residual(params, xy):
-        return advection_term(params, xy) - nu * diffusion_term(params, xy) + d_p(params, xy)
+        return (
+            advection_term(params, xy)
+            - nu * diffusion_term(params, xy)
+            + d_p(params, xy)
+        )
 
     v_residual = jit(vmap(residual, (None, 0)))
     xpinn.PINNs[index].v_residual = v_residual
@@ -95,14 +101,15 @@ def navier_stokes_residual_factory(index: int, nu: float, weight: int = 1) -> LF
 
     return interior_loss
 
+
 # #### Inflow
 
 
 U = 0.3
 
 
-def inflow_func(xy): return np.array(
-    (4 * U * xy[1] * (0.41 - xy[1])/(0.41**2), 0.0))
+def inflow_func(xy):
+    return np.array((4 * U * xy[1] * (0.41 - xy[1]) / (0.41**2), 0.0))
 
 
 def uv(params: Params, xy: Array) -> Array:
@@ -111,10 +118,15 @@ def uv(params: Params, xy: Array) -> Array:
     v = -d_psi[0]
     return np.array([u, v])
 
+
 # #### Boundary Losses
 
 
-def boundary_loss_factory(inflow_func: Callable[[Array], Array], nu: float, weights: Tuple[int, int, int, int] = (1, 1, 1, 1)) -> LFunc:
+def boundary_loss_factory(
+    inflow_func: Callable[[Array], Array],
+    nu: float,
+    weights: Tuple[int, int, int, int] = (1, 1, 1, 1),
+) -> LFunc:
 
     def left_boundary_loss(params, xy):
         # (u - inflow)**2 + v**2
@@ -136,15 +148,14 @@ def boundary_loss_factory(inflow_func: Callable[[Array], Array], nu: float, weig
 
     def boundary_loss(params: Params, points: dict[str, Array]) -> Array:
 
-        left_pts = points['left boundary']
-        wall_pts = points['wall boundary']
-        right_pts = points['right boundary']
-        cylinder_pts = points['cylinder boundary']
+        left_pts = points["left boundary"]
+        wall_pts = points["wall boundary"]
+        right_pts = points["right boundary"]
+        cylinder_pts = points["cylinder boundary"]
 
         left = np.mean(v_left_boundary_loss(params, left_pts)) * weights[0]
         wall = np.mean(v_wall_boundary_loss(params, wall_pts)) * weights[1]
-        cylinder = np.mean(v_wall_boundary_loss(
-            params, cylinder_pts)) * weights[2]
+        cylinder = np.mean(v_wall_boundary_loss(params, cylinder_pts)) * weights[2]
         right = np.mean(v_right_boundary_loss(params, right_pts)) * weights[3]
 
         return left + wall + cylinder + right
@@ -154,10 +165,10 @@ def boundary_loss_factory(inflow_func: Callable[[Array], Array], nu: float, weig
 
 #
 p0 = xpinn.PINNs[0]
-p0.boundary_loss = boundary_loss_factory(inflow_func, nu=0.001, weights=(
-    w_boundary, w_boundary,  w_boundary, w_boundary))
-p0.interior_loss = navier_stokes_residual_factory(
-    0, nu=0.001, weight=w_residual)
+p0.boundary_loss = boundary_loss_factory(
+    inflow_func, nu=0.001, weights=(w_boundary, w_boundary, w_boundary, w_boundary)
+)
+p0.interior_loss = navier_stokes_residual_factory(0, nu=0.001, weight=w_residual)
 p0.create_loss()
 
 
@@ -168,7 +179,7 @@ exponential_decay = optax.exponential_decay(
     transition_steps=3000,
     transition_begin=3000,
     decay_rate=0.1,
-    end_value=0.000001
+    end_value=0.000001,
 )
 
 optimizer = optax.adam(learning_rate=exponential_decay)
@@ -180,8 +191,12 @@ n_iter = 10000
 losses = xpinn.run_iters(n_iter)
 
 # Save model
-our_model_path = model_path / "NavierStokes" / "single_pinn" / "laminar" / \
-    f"{file_train[:-5]
-       }_{w_boundary}_{w_residual}_iterations={n_iter}_newsinglepinn"
+our_model_path = (
+    model_path
+    / "NavierStokes"
+    / "single_pinn"
+    / "laminar"
+    / f"{file_train[:-5]}_{w_boundary}_{w_residual}_iterations={n_iter}_newsinglepinn"
+)
 print(f"Writing to {our_model_path}")
 xpinn.save_model(our_model_path)
