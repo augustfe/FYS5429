@@ -1,3 +1,8 @@
+"""
+Module for some of the terms in the Navier-Stokes equations.
+"""
+
+
 from jax import vmap, jit, grad, hessian, jacobian
 import jax.numpy as np
 from base_network import neural_network

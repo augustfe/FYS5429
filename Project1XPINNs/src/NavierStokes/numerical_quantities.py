@@ -1,3 +1,7 @@
+"""
+File for computing numerical quantities such as drag and lift forces, drag and lift coefficients, and pressure difference. From DFG benchmark problem.
+"""
+
 # fmt: off
 
 
@@ -45,10 +49,17 @@ def drag_lift_force(params: Params, nu: float, n_points: int = 100000):
 
         return np.array(
             [
-                [nu * hess[1, 0] - press, nu * (-hess[0, 0])],
-                [nu * hess[1, 1], nu * (-hess[0, 1]) - press],
+                [nu * hess[1, 0] - press, nu * hess[1, 1]],
+                [nu * -hess[0, 0], nu * (-hess[0, 1]) - press],
             ]
         )
+
+        # return np.array(
+        #     [
+        #         [nu * hess[1, 0] - press, nu * (-hess[0, 0])],
+        #         [nu * hess[1, 1], nu * (-hess[0, 1]) - press],
+        #     ]
+        # )
 
     sigma = jit(vmap(sigma, (None, 0)))
 
