@@ -1,6 +1,6 @@
 import jax.numpy as np
 from jax import jit, vmap
-form type_util import Params
+from type_util import Params
 from navier_stokes_funcs import model, hess_psi
 
 def drag_lift_force(params: Params, nu: float, n_points: int = 100000):
