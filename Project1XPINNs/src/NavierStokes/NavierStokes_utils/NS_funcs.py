@@ -1,4 +1,4 @@
-from jax import vmap, jit, grad
+from jax import vmap, jit, grad, hessian, jacobian
 import jax.numpy as np
 from base_network import neural_network
 
@@ -14,6 +14,12 @@ def p(params, xy): return model(params, xy)[1]
 
 
 d_psi_dxy = grad(psi, argnums=1)
+
+d_psi_dxy = grad(psi, argnums=1)
+hess_psi = hessian(psi, argnums=1)
+jac_hess_psi = jacobian(hess_psi, argnums=1)
+
+d_p = grad(p, argnums=1)
 
 
 def uv(params, xy):
