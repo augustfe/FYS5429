@@ -8,11 +8,8 @@ As expected the XPINN underperforms for solving the Poisson equation.
 We also get quantitatively worse results than \textcite{XPINN_generalize}, however this can likely be contributed to the fact that we use \textsc{Adam} as our optimizer while they utilize LBFGS, which is a quasi-Newton method expected to perform better.
 Our results are qualitatively not too far off from the analytical solution, however they are again outperformed by a singular PINN.
 
-
-% Navier-Stokes
-
 One of the primary benefits of XPINNs is the inherent capacity for parallelization.
-However, we were not able to implement this, meaning we were not able to get a computational performance boost while training the XPINNs.
+However, we were not able to implement this, meaning we were not able to get a computational performance boost while training the XPINNs, other than the reduced complexity utilized with Navier-Stokes.
 In addition, introducing interface losses might complicate the loss landscape entirely, such that more powerful optimization algorithms are necessary.
 These methods include Energy Natural Gradient Descent \cite{müller2023achieving}, which yielded orders of magnitude lower errors, and learning rate free algorithms \cite{sharrock2023learning}, which alleviate the need to tune the learning rate as a parameter while performing remarkably well.
 
