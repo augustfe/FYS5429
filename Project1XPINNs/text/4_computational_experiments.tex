@@ -356,11 +356,9 @@ From this, we can express the PDEs for the second-order spatial derivatives, as 
 u_x + v_y = 0.
 \end{cases}
 \end{equation}
-
-The domain of the problem is given by
-\vspace{-1mm}
+The domain of the problem is given by % \vspace{-1mm}
 \begin{align*}
-    \Omega = [0,2.2] \times [0,0.41] \setminus B_r(0.2,0.2), \hspace{4mm} r = 0.05
+    \Omega = [0,2.2] \times [0,0.41] \setminus B_r(0.2,0.2), \hspace{4mm} r = 0.05.
 \end{align*}
 
 In order to impose the zero divergence condition, we consider the stream function $\psi$ characterizing incompressible flow. $u$ and $v$ can then be obtained through $u=\psi_y$ and $v=-\psi_x$. Our network $\mathcal{N}_\theta$ thus predicts the stream function $\psi$ and the pressure $p$, with
@@ -371,121 +369,138 @@ In order to impose the zero divergence condition, we consider the stream functio
 
 This problem includes three different boundary conditions.
 First, we have the boundary for the upper and lower walls, as well as around the edge of the cylinder.
-In the DFG benchmark 2D-1 \cite{DFG}, the lower and upper walls are notated as $\Gamma_1 = [0,2.2]\times 0$ and $\Gamma_3 = [0,2.2]\times 0.41$ respectively, and the boundary as $S=\partial B_r(0.2,0.2)$.
+In the DFG benchmark 2D-1 \cite{DFG}, the lower and upper walls are notated as $\Gamma_1 = [0,2.2]\times 0$ and $\Gamma_3 = [0,2.2]\times 0.41$ respectively, and the cylinder as $S=\partial B_r(0.2,0.2)$.
 On these walls, we enforce impermeability and the no-slip conditions, leading to zero-flow on these boundaries. 
 The no-slip boundary condition is defined as
-\begin{align*}
-    u_{|\Gamma_1} = u_{|\Gamma_3} = u_{|S} &= 0, \\
-    v_{|\Gamma_1} = v_{|\Gamma_3} = v_{|S} &= 0.
-\end{align*}
+\begin{equation}
+\begin{split}
+    u_{|\Gamma_1} = u_{|\Gamma_3} &= u_{|S} = 0, \\
+    v_{|\Gamma_1} = v_{|\Gamma_3} &= v_{|S} = 0.
+\end{split}
+\end{equation}
 On the left boundary we enforce polynomial inflow.
 The left boundary is $\Gamma_2 = 0\times [0,0.41]$ and the polynomial inflow is given by
-\begin{equation*}
-    u=\frac{4Uy(0.41-y)}{0.41^2}, \quad v=0
-\end{equation*}
-where $U=0.3$, and the mean velocity inlet is $U_{\text{mean}} = 0.2$.
+\begin{equation}
+    u=\frac{4Uy(0.41-y)}{0.41^2}, \quad v=0,
+\end{equation}
+where $U=0.3$, and the mean inlet velocity  is $U_{\text{mean}} = 0.2$.
 Finally, on the right boundary we have the do-nothing boundary condition.
 The boundary is $\Gamma_4=2.2\times[0,0.41]$, and the condition is given by
-\begin{equation*}
+\begin{equation}
     \nu u_x - p = 0, \quad \nu u_y = 0.
-\end{equation*}
-Hence, we confirms our target Reynolds number using the cylinder diameter as the characteristic length $L=0.1$. $U_{\text{mean}}$ is used as the characteristic velocity. The Reynolds number becomes:
-\begin{equation*}
-    Re = \frac {U_{\text{mean}} L} \nu = \frac {0.2 \cdot 0.1} {0.001} = 20 
-\end{equation*}
+\end{equation}
+Hence, we confirm our target Reynolds number using the cylinder diameter as the characteristic length $L=0.1$.
+$U_{\text{mean}}$ is used as the characteristic velocity.
+The Reynolds number then becomes
+\begin{equation}
+    Re = \frac {U_{\text{mean}} L} \nu = \frac {0.2 \cdot 0.1} {0.001} = 20.
+\end{equation}
 
 \subsubsection{Results}
-\begin{comment}
-We were unable to produce satisfying results for Navier-Stokes.
-This is mainly due the large number of hyper-parameters, and the high computational complexity of the derivatives involved, which restricted our ability to tune as we did not have access to the proper resources required for such tasks.
-We are exceedingly close to including the produced results here, but were unable to include them at this time.
-\end{comment}
+Achieving qualitative results required a fair deal of hyperparameter tuning, especially the weighting of the losses in \eqref{eq:PINNMSE}, as well as the model architecture.
+This search was not carried out exhaustively, but rather through a heuristic approach of trial and error.
+Given this, it should be recognized that there may still be potential to achieve better results.
 
+The PINN was structured with 25 hidden layers, each consisting of 30 nodes, with the $\tanh$ activation function and unitary weighting of the loss function.
+We utilized exponential decay in order to tune the learning rate of \textsc{Adam}, leading to a rapid, chaotic, decrease in the measured loss in the early epochs, stabilizing, as in \autoref{fig:NS_PINN_losses}.
+The loss did not fully plateau, meaning there could be room for improvement, although that might also be indicative of overfitting.
 
+\begin{figure}[th]
+    \centering
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/losses/PINN_losses.pdf}
+    \caption{Loss per epoch for PINN on the Navier-Stokes equation.}
+    \label{fig:NS_PINN_losses}
+\end{figure}
+
+The domain decomposition for the XPINN consisted of
+\begin{equation}
+    \Omega_2 = [0.8, 2.2] \times [0, 0.41] \quad\text{and}\quad
+    \Omega_1 = \Omega \setminus \Omega_2.
+\end{equation}
+The XPINN was structured with 25 hidden layers nodes for $\Omega_1$ and 10 hidden layers for $\Omega_2$, all with 30 nodes each.
+As the XPINN encountered difficulties on the interface, we imposed Neumann interface condition on $\psi$ in order to increase performance.
+This involved including a continuity loss on the flow field, with
+\begin{align}
+    \frac{1}{N_I} \sum_{i=0}^{N_I} \left( \nabla \psi(x_I^i) - \{ \nabla\psi_I^i \}  \right)^2,
+\end{align}
+where $\{\nabla\psi_I^i\}$ is the average gradient predicted at the interface, allegoric to \eqref{eq:MSE_I}.
+
+The loss for the XPINN seems to stabilize earlier in \autoref{fig:NS_XPINN_losses}, although do note that the loss is not directly comparable with \autoref{fig:NS_PINN_losses}, as in addition to the Neumann interface condition, we applied a heavy weighting of 20 on the inflow boundary, and a weighting of 40 on the left-to-right interface.
+Even with this weighting, the interface is still clearly visible in \autoref{fig:NS_XPINN_flow_mag}.
+To further enhance performance at the interface, we could explore additional adjustments, such as introducing more continuity conditions, e.g. Robin continuity.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/losses/PINN_losses.pdf}
-    \caption{Loss per epoch for PINN on the Navier-Stokes equation}
-    \label{fig:NS_PINN_loss}
+    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/losses/TwoBox_decomp_losses.pdf}
+    \caption{Loss per epoch for XPINN on the Navier-Stokes equation.}
+    \label{fig:NS_XPINN_losses}
 \end{figure}
 
-
-\par
-Achieving qualitative results required some parameter tuning, of weights for losses, model architecture and decomposition for the XPINN. This was not carried out extensively, but rather through a heuristic approach of trial and error. Given this, it should be recognized that there may be potential to achieve better results. 
-
-The results we chose to present where produced by a PINN which incorporated 25 hidden layers, each with 30 nodes, sticking with the tanh activation function with no weighting on the loss functions. While our XPINN consisted of a decompositon in to two domains given by
-\begin{align*}
-    \Omega_1 =& [0, 0.8] \times [0,0.41] \setminus B_r(0.2,0.2), \hspace{4mm} r = 0.05\\
-    \Omega_2 =& [0.8, 2.2] \times [0, 0.41]
-\end{align*}
-
-With 25 and 10 hidden layers with 30 nodes each respectively for $\Omega_1$ and $\omega2$.
-\par
-The XPINN struggled with the inferface, so in order to aid it's performance we imposed neumann interface conditions on $\psi$ .  That is continuity conditions on the flow field.
-
-\begin{align*}
-    \frac{2}{N_{I^{i,j}}} \sum_{(x,y) \in {I^{i,j}}}^n || \nabla \psi_i(x,y)  - \nabla \psi_j(x,y)||^2
-\end{align*}
-Where $I^{i,j}$ represents interface between PINNs i and j.
-
-Our results are consistent with our previous experiments: our PINN model outperformed the XPINN.
-
-Figure \ref{fig:NS_PINN_loss} illustrates the loss per epoch for our PINN model. The model architecture incorporated 25 hidden layers, each with 30 nodes, sticking with the tanh activation function. Although there was a significant decrease in loss, it did not plateau to the same extent as with our Poisson or advection models. This could suggest that additional training might yield further improvements in performance.
+In general, the PINN produced better results than the XPINN.
+However, with the reduced complexity of the XPINN, we were able to increase the computational speed significantly.
+Having said that, both our models successfully replicated the flow plots from the DFG benchmark  \cite{DFG}, as illustrated in Figures \ref{fig:NS_PINN_FlowMag} through \ref{fig:NS_XPINN_streamfunc}.
+It should be noted on comparison with the benchmark that slightly different colorings were used.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/flow_magnitude_no_decomp.png}
-    \caption{PINN Velocity Magnitude}
+    \caption{Velocity magnitude of the PINN.}
     \label{fig:NS_PINN_FlowMag}
 \end{figure}
-
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/pressure_no_decomp.png}
-    \caption{PINN Pressure}
+    \caption{Pressure prediction of the PINN.}
     \label{fig:NS_PINN_Pressure}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/NoDecomp/ND_10000_iter_30x25/solution/streamfunc_no_decomp.png}
-    \caption{PINN Streamfunction}
+    \caption{Predicted streamfunction of the PINN.}
     \label{fig:NS_PINN_Streamfunc}
 \end{figure}
 
-Having said that, our PINN successfully replicated the flow plots from the DFG benchmark  \cite{DFG}, as illustrated in Figures \ref{fig:NS_PINN_FlowMag} through \ref{fig:NS_PINN_Streamfunc}. It should be noted on comparison with the DFG results that somewhat different colormaps where used, which may make the plots appear more distinct.
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/losses/TwoBox_decomp_losses.pdf}
-    \caption{Loss per epoch for XPINN on the Navier-Stokes equation}
-    \label{fig:NS_XPINN_losses}
-\end{figure}
-
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/flow_magnitude_two_box.png}
-    \caption{XPINN Velocity Magnitude}
+    \caption{Velocity magnitude of the XPINN.}
     \label{fig:NS_XPINN_flow_mag}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/pressure_two_box.png}
-    \title{XPINN Velcoity Magnitude}
+    \caption{Predicted pressure of the XPINN.}
     \label{fig:NS_XPINN_pressure}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=\linewidth]{Project1XPINNs/figures/NavierStokes/TwoBoxDecomp/TB_10000_iter_right_emphasis/solution/streamfunc_two_box.png}
-    \title{XPINN Velcoity Magnitude}
-    \label{fig:NS_XPINN_flow_mag}
+    \caption{Predicted streamfunction of the XPINN.}
+    \label{fig:NS_XPINN_streamfunc}
 \end{figure}
 
+Along with the flow figures, the benchmark also provides drag and lift coefficients, as well as the pressure difference in front of and behind the cylinder. Our approximation of these results are seen in \autoref{table:NS_num}.
 
+\begin{table}[h!]
+\centering
+\caption{Comparison with reference results.}
+\begin{tabular}{r|c|c|c}
+    \toprule
+     & \hspace{5mm} Drag \hspace{5mm} & \hspace{5mm} Lift \hspace{5mm} & Pressure difference  \\
+    \colrule
+    DFG & 5.5795 &  0.0106 & 0.1175 \\
+    PINN & 4.0687  &  -0.2542 & 0.0891 \\
+    XPINN & 2.7482 & -0.3368 & 0.0557 \\
+    \botrule
+\end{tabular}
+\label{table:NS_num}
+\end{table}
+
+\vfill\null
 
 
 

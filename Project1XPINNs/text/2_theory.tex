@@ -158,7 +158,7 @@ XPINNs instead proposes to amend an additional \textit{interface loss} term $\MS
 For instance, we might wish to enforce continuity in our solution across an interface.
 For a single PINN, we amend the loss function with
 \begin{equation}\label{eq:MSE_I}
-    \underbrace{\MSE_I}_{\text{Interface}} = \frac{1}{N_I} \sum_{i = 0}^{N_d} \left( u^*(x_I^i) - \{u_I^i\} \right)^2,  \\
+    \underbrace{\MSE_I}_{\text{Interface}} = \frac{1}{N_I} \sum_{i = 0}^{N_I} \left( u^*(x_I^i) - \{u_I^i\} \right)^2,  \\
 \end{equation}
 where $\{u_I^i\}$ is the average predicted value at the interface from each PINN, and $N_I$ is the number of points on the interface. 
 
