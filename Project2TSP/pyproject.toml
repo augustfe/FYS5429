@@ -1,0 +1,29 @@
+[build-system]
+requires = [
+    "setuptools"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+# All the following settings are optional:
+include = ["_src", "data"]  # ["*"] by default
+
+[project]
+version = "0.1.0"
+requires-python = ">=3.7"
+license = {text = "MIT License"}
+name = "Project2TSP"
+
+description = "Tools for solving graph problems with Graph Neural Networks"
+readme = "README.md"
+dependencies = [
+    "numpy",
+    "matplotlib", 
+    "pytest",
+    "jax",
+    "optax",
+    "flax",
+    "networkx",
+    "tqdm",
+    "jraph",
+]
