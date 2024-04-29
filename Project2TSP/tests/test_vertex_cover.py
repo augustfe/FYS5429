@@ -51,7 +51,7 @@ def test_graph_to_jraph():
         (np.array([0.5, 0.5, 0.5, 0.5]), np.ones((4, 4)) - np.eye(4)),
     ],
 )
-def test_vertex_loss(probs, A):
+def test_vertex_loss(probs: np.ndarray, A: np.ndarray):
     probs = probs.reshape(-1, 1)
     computed_loss = vertex_loss_func(probs, A)
 
@@ -72,7 +72,7 @@ def test_vertex_loss(probs, A):
     "n",
     [4, 6, 8, 10, 12, 14, 16, 18, 20],
 )
-def test_adjacency_match(n):
+def test_adjacency_match(n: int):
     nx_graph = generate_graph(n, 3)
     jraph_graph = graph_to_jraph(nx_graph)
 

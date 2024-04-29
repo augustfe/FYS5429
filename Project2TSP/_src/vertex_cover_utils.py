@@ -93,8 +93,6 @@ def graph_to_jraph(nx_graph: nx.Graph) -> jraph.GraphsTuple:
         [receivers, senders]
     )
 
-    # print(len(senders))
-
     # A = np.asarray(nx.adjacency_matrix(nx_graph, nodelist=range(n)).toarray())
     A = np.zeros((n, n)).at[senders, receivers].set(1)
     # Make sure the graph is undirected
@@ -207,7 +205,6 @@ def train(
 
         pbar.set_postfix({"loss": loss, "count": count})
 
-        # bitstring_ = state.apply_fn(state.params, graph).nodes
         bitstring = bitstring_ > threshold
 
         if i % (num_epochs // 10) == 0:
@@ -293,7 +290,7 @@ def evaluate_vertex_cover(
     # pos = nx.kamada_kawai_layout(nx_graph)
     # nx.draw(nx_graph, pos, node_color=color_map, with_labels=True)
     if draw:
-        nx.draw_spring(nx_graph, node_color=color_map)
+        nx.draw_kamada_kawai(nx_graph, node_color=color_map)
         plt.show()
 
 
