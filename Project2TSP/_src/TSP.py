@@ -1,5 +1,5 @@
 import jraph
-from jax import numpy as np, random, jit, value_and_grad
+from jax import numpy as np, random, jit, value_and_grad  # , custom_jvp, lax
 import optax
 import flax.linen as nn
 from flax.typing import Array, Optional, FrozenDict, Any
@@ -10,6 +10,80 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from matrix_helper import calculate_distances
 from typing import Sequence
+
+# import jax
+# from jax._src.numpy import util as numpy_util
+
+
+# @jax.jit
+# def leaky_zero_one(x: Array, negative_slope: Array = 1e-2) -> Array:
+#     r"""Leaky rectified linear unit activation function.
+
+#   Computes the element-wise function:
+
+#   .. math::
+#     \mathrm{leaky\_relu}(x) = \begin{cases}
+#       x, & x \ge 0\\
+#       \alpha x, & x < 0
+#     \end{cases}
+
+#   where :math:`\alpha` = :code:`negative_slope`.
+
+#   Args:
+#     x : input array
+#     negative_slope : array or scalar specifying the negative slope (default: 0.01)
+
+#   Returns:
+#     An array.
+
+#   See also:
+#     :func:`relu`
+#   """
+#     numpy_util.check_arraylike("leaky_zero_one", x)
+#     x_arr = np.asarray(x)
+#     return np.where((x_arr >= 0) & (x_arr <= 1), x_arr, negative_slope * x_arr)
+
+
+# @custom_jvp
+# @jax.jit
+# def zero_one(x: Array) -> Array:
+#     r"""Rectified linear unit activation function.
+
+#     Computes the element-wise function:
+
+#     .. math::
+#       \mathrm{relu}(x) = \max(x, 0)
+
+#     except under differentiation, we take:
+
+#     .. math::
+#       \nabla \mathrm{relu}(0) = 0
+
+#     For more information see
+#     `Numerical influence of ReLU’(0) on backpropagation
+#     <https://openreview.net/forum?id=urrcVI-_jRm>`_.
+
+#     Args:
+#       x : input array
+
+#     Returns:
+#       An array.
+
+#     Example:
+#       >>> jax.nn.relu(jax.numpy.array([-2., -1., -0.5, 0, 0.5, 1., 2.]))
+#       Array([0. , 0. , 0. , 0. , 0.5, 1. , 2. ], dtype=float32)
+
+#     See also:
+#       :func:`relu6`
+
+#     """
+#     return np.minimum(np.maximum(x, 0), 1)
+
+
+# # For behavior at 0, see https://openreview.net/forum?id=urrcVI-_jRm
+# zero_one.defjvps(
+#     lambda g, ans, x: lax.select((1 > x) & (x > 0), g, lax.full_like(g, 0))
+# )
 
 
 class MLP(nn.Module):
@@ -23,6 +97,9 @@ class MLP(nn.Module):
         for size in self.feature_sizes:
             x = nn.Dense(features=size)(x)
             x = nn.leaky_relu(x)
+            # x = leaky_zero_one(x)
+            # x = zero_one(x)
+
             # x = nn.gelu(x)
         return x
 
@@ -63,8 +140,12 @@ class GCN_dev(nn.Module):
         graph = gn(graph)
 
         # graph = graph._replace(nodes=nn.sigmoid(graph.nodes))
-        nodes = nn.sigmoid(graph.nodes)
-        # nodes = nodes.at[0, :].set(0.0)
+        nodes = graph.nodes
+        nodes = nn.sigmoid(nodes)
+
+        # Set the first node as the start and end node
+        nodes = nodes.at[0, :].set(0.0)
+        nodes = nodes.at[:, 0].set(0.0)
         nodes = nodes.at[0, 0].set(1.0)
         graph = graph._replace(nodes=nodes)
 
@@ -292,7 +373,9 @@ def train(
 
     n = graph.n_node[0]
     best_bitstring = np.zeros((n, n))
-    best_loss = TSP_loss_func(best_bitstring, graph.globals)
+    bitstring_loss = jit(lambda x: TSP_loss_func(x, graph.globals))
+    best_loss = bitstring_loss(best_bitstring)
+    # best_loss = TSP_loss_func(best_bitstring, graph.globals)
 
     gnn_start = time()
 
@@ -300,20 +383,19 @@ def train(
 
     pbar = tqdm(range(num_epochs), desc="Training", unit="epoch")
 
-    TSP_loss = jit(TSP_loss_func)
-
     def loop_inner(state, prev_loss, count, best_loss, best_bitstring):
         state, loss, bitstring_ = train_step(state, graph)
 
         bitstring = bitstring_ > threshold
 
-        loss_ = TSP_loss(bitstring, graph.globals)
+        # loss_ = TSP_loss(bitstring, graph.globals)
+        # loss_ = bitstring_loss(bitstring)
 
-        if loss_ < best_loss:
-            best_loss = loss_
+        if loss < best_loss:
+            best_loss = loss
             best_bitstring = bitstring_
 
-        if abs(prev_loss - loss) <= tol:
+        if prev_loss - loss <= tol:
             count += 1
         else:
             count = 0
@@ -327,9 +409,9 @@ def train(
             pbar.set_postfix(
                 {"loss": f"{vals[1]:.4f}", "count": f"{vals[2] / patience:.2f}"}
             )
-            if vals[2] >= patience:
-                print(f"Converged after {i} epochs.")
-                break
+            # if vals[2] >= patience:
+            #     print(f"Converged after {i} epochs.")
+            #     break
     except KeyboardInterrupt:
         print("Training interrupted.")
     finally:
@@ -462,7 +544,7 @@ if __name__ == "__main__":
     prob = 0.03
     nx_graph, pos = generate_graph(n, degree=d, graph_type="reg")
     nx_graph, pos = generate_graph(n, graph_type="grid")
-    # nx_graph, pos = generate_graph(n, graph_type="chess")
+    nx_graph, pos = generate_graph(n, graph_type="chess")
     # nx_graph, pos = generate_graph(25, graph_type="reg", degree=24)
     # nx_graph = nx.grid_2d_graph(8, 8)
 
@@ -474,7 +556,7 @@ if __name__ == "__main__":
     n = nx_graph.number_of_nodes()
 
     n_epochs = 300000
-    lr = 1e-4
+    lr = 1e-3
     optimizer = optax.adam(lr)
 
     embedding_size = int(np.sqrt(n))

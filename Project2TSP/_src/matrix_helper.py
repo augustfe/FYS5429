@@ -4,6 +4,14 @@ from functools import partial
 import matplotlib.pyplot as plt
 
 
+def adjacency(X: Array) -> Array:
+    "Generate the predicted adjacency matrix"
+
+    FROM = X
+    TO = np.roll(X.T, -1, axis=0)
+    return FROM @ TO
+
+
 def create_C0(n: int) -> Array:
     A = np.eye(n, dtype=np.int8)
     B = np.ones(n, dtype=np.int8)
@@ -55,12 +63,12 @@ def total_energy_factory(C0: Array, C1: Array, M: Array) -> Callable[[Array], fl
 
 @partial(jit, static_argnums=(2,))
 def distance_of_tour(x: Array, M: Array, size: int) -> float:
-    adj = adjacency(x, size)
+    adj = adjacency_(x, size)
 
     return np.sum(adj * M)
 
 
-def adjacency(x: Array, size: int) -> Array:
+def adjacency_(x: Array, size: int) -> Array:
     X = x.reshape(size, size)
 
     TO = np.roll(X, 1, axis=0)
@@ -95,7 +103,7 @@ def all_bitstrings_jax(size):
 def plot_tour(x: Array, points: Array):
     n = points.shape[0]
     dim = points.shape[1]
-    adjacency_matrix = np.clip(adjacency(x, n), 0, 1)
+    adjacency_matrix = np.clip(adjacency_(x, n), 0, 1)
     # distance_matrix = distances(points) * adjacency_matrix
     # weighted = distance_matrix / np.max(distance_matrix)
 
