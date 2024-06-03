@@ -1,0 +1,66 @@
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{wrapfig}
+\usepackage{array} 
+\usepackage{listings}
+\usepackage[para,online,flushleft]{threeparttablex}
+% \usepackage{booktabs,dcolumn}
+\usepackage{color}
+\usepackage{comment}
+ 
+\usepackage{textpos}
+\usepackage{multirow,bigdelim}
+\usepackage{tikz}
+\usepackage{dsfont}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{pgfplots}
+\usepackage{microtype}
+
+\pgfplotsset{width=\textwidth*0.5, height=\textwidth/3*0.5,compat=1.18}
+
+\usepackage[super]{nth}
+
+\usepackage{upgreek} %upalpha in Saxena2021 Reference
+
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\hypersetup{breaklinks=true,colorlinks=true,linkcolor=blue,citecolor=blue,filecolor=magenta,urlcolor=blue}
+
+\usepackage{lipsum}
+
+
+\usepackage{xcolor}
+\usepackage{ifthen}
+\usepackage{tikz}
+\usetikzlibrary{fit}
+
+\makeatletter
+\def\@bibdataout@aps{%
+\immediate\write\@bibdataout{%
+@CONTROL{%
+apsrev41Control%
+\longbibliography@sw{%
+    ,author="08",editor="1",pages="1",title="0",year="1"%
+    }{%
+    ,author="08",editor="1",pages="1",title="",year="1"%
+    }%
+  }%
+}%
+\if@filesw \immediate \write \@auxout {\string \citation {apsrev41Control}}\fi
+}
+\makeatother
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\relu}{ReLU}
+
+\usepackage{calc}
+\newcommand{\WidestEntry}{$\ddots$}%
+\newcommand{\SetToWidest}[1]{\makebox[\widthof{\WidestEntry}]{$#1$}}%
+
+% \newcommand{\O}{$\mathcal{O}$}
+
+% \bibliographystyle{apsrev4-1}
+%\usepackage[left]{lineno}
+%\linenumbers

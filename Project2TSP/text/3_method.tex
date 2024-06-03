@@ -1,0 +1,9 @@
+\subsection{The JAX ecosystem}
+The network is implemented through the \verb|JAX| ecosystem \cite{jax2018github}, in order to improve the efficiency of the computations in Python.
+It does this through implementing just-in-time compilation (jit), automatic differentiation and utilizing XLA (Accelerated Linear Algebra) as its backend.
+
+The graphs are generated using \verb|NetworkX| \cite{SciPyProceedings_11}, and translated to \verb|Jraph| \cite{jraph2020github} which allows for sparse graph computations in \verb|JAX|.
+\verb|Jraph| serves as an extension of \verb|FLAX| \cite{flax2020github}, which is a neural network library developed by Google for \verb|JAX|, implementing a number of graph neural network utilities.
+The optimization is performed using the \verb|optax| library \cite{deepmind2020jax}, with Adam as the optimizer.
+
+

@@ -1,0 +1,15 @@
+Graphs serve as one of the most natural ways to express data, ranging from the connections between cities to the social circles of people.
+A graph $G$ is uniquely determined by a set of vertices $V$ and a set of edges $E \subseteq \{ \{ u, v \} : u,v \in V \wedge u \neq v \}$, denoted $G=(V, E)$.
+
+A problem arising when connecting graphs with typical neural networks, is that they typically rely on a fixed number of input features per data points.
+
+A major factor in the performance of machine learning models is typically the available training data.
+Standard neural networks rely on having a large data set in order to properly predict the behaviour of future data, however with NP problems, this is inherently an issue.
+This is because as there exist no efficient way to solve them, there exists no large bank of optimal solutions, particularly for large problems.
+
+This is a familiar problem within many fields, for instance within the resolution of Partial Differential Equations (PDEs).
+To counteract this, Physics Informed Neural Networks (PINNs) and Scientific Machine Learning (SciML) has been developed.
+These methods aim to incorporate the domain- and problem-specific knowledge directly into the model, in order to reduce or entirely eliminate the need for labeled data.
+
+For PDEs, this typically means using the neural network as a surrogate for the solution.
+The cost function then typically consists of differentiating the network in much the same way one would a normal function, punishing it for not following the boundary constraints and the differential equations.

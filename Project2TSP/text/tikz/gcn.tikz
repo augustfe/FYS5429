@@ -1,0 +1,68 @@
+% \documentclass[tikz,border=10pt]{standalone}
+% \usetikzlibrary{fit,backgrounds}
+
+% \begin{document}
+
+\def\purple{purple!80}
+\def\teal{teal!35}
+\def\back{purple!35}
+\def\back{black!40}
+
+
+\begin{tikzpicture}[>=latex]
+    % \node[draw, circle] (0) at (0.774, 0.357) {};
+    % \node[draw, circle] (1) at (-0.599, 0.618) {};
+    % \node[draw, circle] (2) at (-0.143, -0.712) {};
+    % \node[draw, circle] (3) at (0.156, 0.855) {};
+    % \node[draw, circle] (4) at (-0.206, 0.36) {};
+    % \node[draw, circle] (5) at (-0.755, -0.266) {};
+    % \node[draw, circle] (6) at (0.537, -0.6) {};
+    % \node[draw, circle] (7) at (0.931, -0.345) {};
+    % \node[draw, circle] (8) at (0.304, -0.132) {};
+    % \node[draw, circle] (9) at (-1.0, 0.263) {};
+
+    \node[draw, circle, fill=\teal] (0) at (2.76, 2.11) {};
+    \node[draw, circle, fill=\teal] (7) at (3.00, 1.01) {};
+    \node[draw, circle, fill=\teal] (3) at (1.80, 2.88) {};
+    \node[draw, circle, fill=\teal] (4) at (1.23, 2.11) {};
+    \node[draw, circle, fill=\teal] (1) at (0.62, 2.51) {};
+    \node[draw, circle, fill=\teal] (5) at (0.38, 1.14) {};
+    \node[draw, circle, fill=\teal] (9) at (0.00, 1.96) {};
+    \node[draw, circle, fill=\teal] (6) at (2.39, 0.00) {};
+    \node[draw, circle, fill=\teal] (2) at (1.33, 0.44) {};
+    \node[draw, circle, fill=\teal] (8) at (2.03, 1.35) {};
+    
+    \foreach \i in {3,4,5,9}
+        \draw[->, thick, color=\purple] (\i) to (1);
+        
+    \begin{scope}[-, color=\back]
+        \draw (0) to (7);
+        \draw (0) to (3);
+        \draw (0) to (8);
+        \draw (7) to (6);
+        \draw (7) to (8);
+        \draw (3) to (4);
+        \draw (4) to (9);
+        \draw (4) to (8);
+        \draw (5) to (9);
+        \draw (5) to (2);
+        \draw (6) to (2);
+        \draw (2) to (8);
+    \end{scope}
+    % \draw[draw=red, rounded corners=30pt]
+    %     ([yshift=0.1cm]1.north west) 
+    % --  ([xshift=-0.25cm, yshift=-0.05cm]9.north west)
+    % --  ([xshift=-0.02cm, yshift=-0.25cm]5.south)
+    % --  ([yshift=-0.1cm]4.south east)
+    % --  ([xshift=0.25cm, yshift=0.15cm]3.north east)
+    % --  cycle;
+
+    \draw[draw=\purple, rounded corners=15pt]
+        ([yshift=0.2cm]1.north west) 
+    --  ([xshift=-0.3cm]9.west)
+    --  ([xshift=0.1cm, yshift=-0.4cm]5.south west)
+    --  ([xshift=0.15cm]4.south east)
+    --  ([xshift=0.35cm, yshift=0.2cm]3.north east)
+    --  cycle;
+\end{tikzpicture}
+% \end{document}
