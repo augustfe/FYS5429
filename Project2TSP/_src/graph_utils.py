@@ -19,7 +19,9 @@ def generate_graph(
         n (int): The number of nodes in the graph.
         degree (int, optional): The degree of the nodes in the graph. Defaults to None.
         prob (float, optional): The probability of the edges in the graph. Defaults to None.
-        graph_type (str, optional): The type of the graph. Defaults to "reg".
+        graph_type (str, optional):
+            The type of the graph, either "reg", "erdos", "prob", "grid" or "chess".
+            Defaults to "reg".
         random_seed (int, optional): The random seed. Defaults to 0.
 
     Returns:
@@ -56,9 +58,14 @@ def generate_graph(
                 nx_graph.add_edge((i, j), (i + 1, j - 1))
                 nx_graph.add_edge((i, j), (i - 1, j + 1))
 
+            nx_graph.add_edge((0, 1), (1, 0))
+            nx_graph.add_edge((0, n - 2), (1, n - 1))
+            nx_graph.add_edge((n - 1, 1), (n - 2, 0))
+            nx_graph.add_edge((n - 1, n - 2), (n - 2, n - 1))
+
         for i, j in nx_graph.nodes:
             new_graph.add_node(i * n + j)
-            pos[i * n + j] = np.asarray([i, j]) / n
+            pos[i * n + j] = np.asarray([i, j]) / (n - 1)
         for (i, j), (k, l) in nx_graph.edges:
             new_graph.add_edge(i * n + j, k * n + l)
         nx_graph = new_graph
@@ -101,6 +108,33 @@ def graph_to_jraph(
         n_node=np.array([n]),
         n_edge=np.array([e]),
         nodes=A,
+        edges=edges,
+        globals=None,
+        senders=senders,
+        receivers=receivers,
+    )
+
+    return graph
+
+
+def graph_to_jraph_2(nx_graph: nx.Graph, pos: dict[int, Array]) -> jraph.GraphsTuple:
+    n = nx_graph.number_of_nodes()
+    e = nx_graph.number_of_edges()
+
+    senders, receivers = np.asarray(nx_graph.edges).T
+    senders, receivers = np.concatenate([senders, receivers]), np.concatenate(
+        [receivers, senders]
+    )
+
+    pos_arr = np.stack([pos[i] for i in range(n)])
+    distances = calculate_distances(pos_arr)
+    distances: Array
+    edges = distances.at[senders, receivers].get()
+
+    graph = jraph.GraphsTuple(
+        n_node=np.array([n]),
+        n_edge=np.array([e]),
+        nodes=pos_arr,
         edges=edges,
         globals=None,
         senders=senders,

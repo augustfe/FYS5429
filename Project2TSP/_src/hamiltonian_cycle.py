@@ -5,8 +5,6 @@ import networkx as nx
 import jax.numpy as np
 import flax.linen as nn
 from flax.typing import Array, FrozenDict, Any, PRNGKey
-
-# from flax.training.train_state import TrainState
 from jax import jit, value_and_grad
 
 import matplotlib.pyplot as plt
@@ -16,7 +14,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 from gcn import GCN, TrainState
-from graph_utils import generate_graph, graph_to_jraph
+from graph_utils import generate_graph, graph_to_jraph, graph_to_jraph_2
 from matrix_helper import adjacency
 
 
@@ -36,21 +34,33 @@ def hamiltonian_cycle_loss(graph: jraph.GraphsTuple) -> Callable[[Array], Array]
     edges = graph.edges
 
     def loss_function(probs: Array) -> Array:
-        H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
-        H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
+
+        def row_and_col_sum(probs: Array) -> tuple[Array, Array]:
+            H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
+            H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
+            return H_1, H_2
+
+        H_1, H_2 = row_and_col_sum(probs)
+        # H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
+        # H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
 
         A_hat = adjacency(probs)
         invalid = A_hat.at[senders, receivers].set(0.0)
         H_3 = np.sum(invalid)
 
         H_A = H_1 + H_2 + H_3
+        # H_A = 2 * H_A
 
         weighted = A_hat.at[senders, receivers].get()
 
         H_B = np.dot(weighted, edges)
         # H_B = 0
 
-        return H_A + H_B
+        # HC_1, HC_2 = row_and_col_sum(A_hat)
+        # H_C = HC_1 + HC_2
+        H_C = 0
+
+        return H_A + H_B + H_C
 
     return loss_function
 
@@ -99,7 +109,7 @@ def train(
     tol: float = 0.01,
     patience: int = 100,
 ) -> tuple[TrainState, Array]:
-    graph = graph_to_jraph(nx_graph, pos)
+    graph = graph_to_jraph_2(nx_graph, pos)
     main_key = jax.random.PRNGKey(random_seed)
     main_key, init_rng, dropout_key = jax.random.split(main_key, num=3)
 
@@ -117,11 +127,8 @@ def train(
     )
 
     prev_loss = 1.0
-    count = 0
-
-    n = graph.n_node[0]
-    best_bitstring = np.zeros((n, n))
     best_loss = np.inf
+    count = 0
 
     gnn_start = time()
 
@@ -131,6 +138,7 @@ def train(
         state, loss, probs = train_step(state, graph, dropout_key)
 
         if epoch % (num_epochs // 10) == 0:
+            continue
             draw_cycle(nx_graph, pos, probs, rounding=False, save=True, step=epoch)
 
         if loss < best_loss:
@@ -176,8 +184,22 @@ def draw_cycle(
     plt.scatter(pos_arr[:, 0], pos_arr[:, 1])
 
     A_hat = adjacency(bitstring)
+
     if rounding:
+        loss_func = hamiltonian_cycle_loss(graph_to_jraph_2(nx_graph, pos))
         A_hat = (A_hat > 0.5) * 1.0
+
+        det_loss = loss_func(bitstring)
+        order_violations = (1 - np.sum(bitstring, axis=0)) ** 2
+        node_violations = (1 - np.sum(bitstring, axis=1)) ** 2
+        degree_violations = np.abs(np.sum(A_hat, axis=0) - 1)
+
+        print(f"Deterministic loss: {det_loss:.4f}")
+        print(f"Order violations: {np.sum(order_violations):.4f}")
+        print(f"Node violations: {np.sum(node_violations):.4f}")
+        print(f"Degree violations: {np.sum(degree_violations):.4f}")
+
+    A_hat = np.clip(A_hat, 0, 1)
     for i in range(n):
         for j in range(n):
             a = pos_arr[i]
@@ -210,14 +232,26 @@ if __name__ == "__main__":
     n = 8 * 8
     nx_graph, pos = generate_graph(n, graph_type="chess")
     # nx_graph, pos = generate_graph(n, graph_type="grid")
+    # nx_graph, pos = generate_graph(100, degree=5, graph_type="reg")
+
     n = nx_graph.number_of_nodes()
 
-    n_epochs = 100000
+    n_epochs = 100_000
     lr = 0.001
     optimizer = optax.adam(learning_rate=lr)
+    # lr = 0.01
+    # optimizer = optax.noisy_sgd(learning_rate=lr, eta=0.4, gamma=0.0)
+    # optimizer = optax.lamb(learning_rate=lr)
 
-    hidden_size = 64
-    net = GCN(hidden_size, n, nn.leaky_relu)
+    hidden_size = 8
+    net = GCN(
+        hidden_size,
+        n,
+        nn.leaky_relu,
+        output_activation=nn.softmax,
+        num_layers=1,
+        dropout_rate=0.0,
+    )
 
     state, best_bitstring = train(
         nx_graph,
@@ -225,11 +259,23 @@ if __name__ == "__main__":
         optimizer,
         n_epochs,
         tol=1e-4,
-        patience=100000,
+        patience=10000,
     )
 
-    graph = graph_to_jraph(nx_graph, pos)
+    graph = graph_to_jraph_2(nx_graph, pos)
     final_graph = state.apply_fn(state.params, graph, training=False)
     final_bitstring = post_process(final_graph.nodes)
+    # final_bitstring = final_graph.nodes
 
-    draw_cycle(nx_graph, pos, best_bitstring)
+    # print(best_bitstring.shape)
+    print(
+        net.tabulate(
+            jax.random.key(0),
+            graph,
+            training=False,
+            compute_flops=True,
+            compute_vjp_flops=True,
+        )
+    )
+
+    draw_cycle(nx_graph, pos, final_bitstring)
