@@ -1,0 +1,346 @@
+\subsection{A brief introduction to Graph Theory}
+Graphs are in their simplest form a collection of vertices, and a collection of edges connecting said vertices.
+Let $V$ denote the set of vertices, and $E \subseteq \{ uv : u,v \in V \wedge u \neq v \}$.
+We can then denote the simple, undirected graph as $G = (V, E)$, which by definition contains to loops from a given vertex $u$ to itself.
+It is undirected in the sense that we do not assign a direction \textit{from $u$ to $v$}, but rather simply that there is a connection.
+
+Associated with a graph, we have the adjacency matrix $A = (a_{ij}) \in \mathbb{R}^{n \times n}$, defined by
+\begin{equation}
+    a_{ij} = 
+    \begin{cases}
+        1 & \text{if } u_i u_j \in E, \\
+        0 & \text{else}.
+    \end{cases}
+\end{equation}
+For an undirected graph, $A$ is symmetric.
+
+We sometimes associate a weight function $w: E \to \mathbb{R}$ with a graph.
+Consider as an example a graph of cities, with an edge representing a road connection between two given cities.
+A natural weight function might then be the physical distance between the two cities.
+A path $P_n$ is an ordering of vertices $P=v_1, v_2, \ldots, v_n$ such that $v_i v_{i+1} \in E$ for $i = 1, 2, \ldots, n-1$.
+This leads to the shortest path problem, wherein the goal is to find the path $P_n^*$ between two vertices $v_1$ and $v_n$ such that
+\begin{equation}
+    \sum_{i = 1}^{n - 1} w(v_{i}v_{i+1})
+\end{equation}
+is minimal.
+
+An important measure when working with the complexity of problems, comes from asymptotic analysis.
+For a function $g$, we define $\mathcal{O}(g(n))$ as the set of all functions growing slower than (or equal) to $g$. Formally, we write
+\begin{multline}
+    \mathcal{O}(g(n)) = \{ f(n) : \exists C > 0 \text{ and } n_0 \in \mathbb{N} \\
+    \text{s.t. } |f(n)| \leq C |g(n)| \ \forall n \geq n_0 \}.
+\end{multline}
+Thus, for instance we have $n \in \mathcal{O}(n^2)$.
+Although this notation is formally correct, it is traditionally written $n = \mathcal{O}(n^2)$ \cite{aigner2023discrete}.
+Note that this is not a precise measure of growth, but rather an upper bound.
+
+The shortest path problem can be solved in $\mathcal{O}(|E| + |V| \log|V|)$ with Dijkstra's Algorithm, assuming $w$ is non-negative for each edge.
+Here $|\cdot|$ denotes the size of the set, growing linearithmic with the size of the graph.
+In problem complexity, the ``hardness'' of a problem is typically defined by whether or not there exists an algorithm which solves the problem in polynomial time.
+A problem of this difficulty is said to be in class P.
+As $n \log n \in \mathcal{O}(n^2)$, the shortest path problem is easily solved.
+
+An interesting class of problems are those in NP, meaning \textit{non-deterministic polynomial time}.
+These problems are defined by there being a polynomial time algorithm for verifying a solution, however not necessarily one to find the solution.
+An example of this is Sudoku (of arbitrary problem size), or the Traveling Salesman Problem (TSP).
+TSP is the problem of finding a cycle, i.e.\ a path starting and ending in the same vertex, which passes through each vertex once, with the minimum length.
+
+\subsection{Graph Neural Networks}
+Graph Neural Networks (GNNs) are a class of deep learning methods designed to operate on graphs.
+They do this in various ways in order to utilize the inherent graph structure of the data.
+One such method is Graph Convolutional Networks (GCNs) \cite{kipf2017semisupervised}, which can be viewed as a generalization of Convolutional Neural Networks (CNNs).
+
+CNNs are designed to operate on euclidean data, which typically consists of 1-D or 2-D grids \cite[p.~326--339]{Goodfellow-et-al-2016}.
+A convolutional layer is typically made up of three different stages.
+Firstly, there's the convolutional stage where an affine transformation is applied, related to how one would convolve two functions.
+Given an input matrix $I$ and a matrix called the kernel, the resulting convolution $S$ is defined by
+\begin{equation}
+    S_{i,j} = (K * I)_{i,j} = \sum_m \sum_n I_{i - m, j - n} K_{m, n}.
+\end{equation}
+Typically, the dimension of the kernel is much smaller than that of the input.
+In a machine learning context, the kernel contains trainable weights, allowing for expressivity in how an element is effected by nearby values.
+
+Next, non-linearity is introduced through an activation function.
+A typical choice for CNNs is the rectified linear unit ($\relu$), defined as $\relu(x) = \max\{x, 0\}$.
+Finally, there is a pooling layer, where each element is replaced by the result of some operation applied to the neighbouring elements, illustrated in \autoref{fig:cnn_pool}.
+This could for instance be max pooling, where the result is the maximal value of the neighbouring elements, or simply the sum.
+
+\begin{figure}[!h]
+    \centering
+    \resizebox{!}{4cm}{\input{Project2TSP/text/tikz/cnn.tikz}}
+    \caption{An illustration of a typical convolutional layer. Communication happens between elements within a fixed area.}
+    \label{fig:cnn_pool}
+\end{figure}
+
+These convolutions are dependent on the structure of the data being both rigid and known.
+Arranging the data as a graph, as in \autoref{fig:cnn_pool}, kernel-level communication can be described using a weighted directed graph.
+In this way, one gets a sense of how convolutions can be extended to arbitrary graphs, where communication happens across the \nth{1}-order neighbourhood of a node.
+
+GCNs update node features through the propagation rule
+\begin{equation}\label{eq:gcn}
+    H^{(l+1)} = \sigma \left( \tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}} H^{(l)} W^{(l)} \right),
+\end{equation}
+where $\tilde{A} = A + I_n$ denotes the adjacency matrix of the graph with added self-edges, $\tilde{D}_{i,i} = \sum_j A_{i,j}$ is the matrix with diagonal elements equal to the outdegree of each node, $H^{(l)}$ and $W^{(l)}$ are respectively the activated values and the trainable weights for the $l^{\text{th}}$ layer, with $H^{(0)}$ equal the input graph.
+$\sigma : \mathbb{R} \to \mathbb{R}$ denotes the chosen activation function for the layer, applied elementwise.
+
+Note that $\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}$ is a way to normalize the values in $\tilde{A}$, derived from an approximation of spectral graph convolutions.
+See \textcite{kipf2017semisupervised} and \textcite{spectralGraph} for a more detailed explanation of this approximation.
+
+An important property of adjacency matrices is that $(A^k)_{i,j}$ is the number of paths from node $i$ to node $j$ of length $k$ \cite[p.~125]{aigner2023discrete}, meaning that repeated applications of \eqref{eq:gcn} results in communication over the $k^{\text{th}}$-order neighbourhood around a node.
+One such application is visualized in \autoref{fig:gcn}.
+
+\begin{figure}[!h]
+    \centering
+    \resizebox{!}{4cm}{\input{Project2TSP/text/tikz/gcn.tikz}}
+    \caption{An application of a GCN layer, with communication across the \nth{1}-order neighbourhood.}
+    \label{fig:gcn}
+\end{figure}
+
+In practice, the affine transformation $H^{(l)} W^{(l)}$ in \eqref{eq:gcn} can be replaced with a more complex function, such as a multilayer perceptron.
+This might grant the model more expressivity.
+Note that this operates elementwise for each node feature, with shared parameters.
+
+One problem with GCNs is that they do not function on complete graphs.
+This stems from the fact that with a fully connected graph, the adjacency matrix contains a $1$ everywhere but the diagonal.
+Then, $\tilde{A} = A + I_n$ is a matrix of all ones, resulting in $\tilde{D}_{i,i} = n$.
+Multiplying a matrix by $\tilde{D}^{-\frac{1}{2}} \tilde{A} \tilde{D}^{-\frac{1}{2}}$ this causes all node features to result in the same vector, a concept known as oversmoothing \cite{oversmoothing}.
+This can also occur with sparser graphs if too many message passing layers are added.
+
+\subsection{Ising formulations}
+The Ising model was originally created in order to model the properties of ferromagnets, although it has since found a number of different applications.
+The model considers in the simplest case a string of magnetic moments, each assigned either \textit{up} or \textit{down} spin \cite{isingModel}.
+An Ising model thus consists of $N$ spins $s_i = \pm 1$, together with a Hamiltonian
+\begin{equation}\label{eq:hamiltonian}
+    H(s_1, \ldots, s_N) = - \sum_{i < j} J_{ij} s_i s_j - \sum_{i = 1}^N h_i s_i,
+\end{equation}
+for $J_{ij}, h_i \in \mathbb{R}$ \cite{IsingFormulations}.
+
+Through the function $f(x) = \frac{1}{2}(x+1)$, the spins can be translated to binary decision variables, such that $x_i = f(s_i) \in \{0, 1\}$.
+The Ising model is thus closely related to Quadratic Unconstrained Binary Optimization (QUBO) problems, defined as the programming problem
+\begin{equation}\label{eq:QUBO}
+\begin{array}{rl}
+    \text{maximize} & x^T Q x + c^T x \\
+    \text{subject to} & x \in \{0, 1\}^n,
+\end{array}
+\end{equation}
+for a given real matrix $Q$ and vector $c$ \cite[p.~1--7]{PunnenAbrahamP2022TQUB}.
+Often, $Q$ is upper triangular, meaning we can rewrite the objective function in \eqref{eq:QUBO} as
+\begin{equation}
+    \sum_{i \leq j} Q_{ij} x_i x_j + \sum_{i = 1}^n c_i x_i.
+\end{equation}
+Additionally, maximizing an objective function is equivalent with minimizing the negative of the objective function, meaning we can rewrite \eqref{eq:QUBO} as
+\begin{equation}
+\begin{array}{rl}
+    \text{minimize} & \displaystyle -\sum_{i < j} Q_{ij} x_i x_j - \sum_{i = 1}^n c_i x_i \\
+    \text{subject to} & x \in \{0, 1\}^n,
+\end{array}
+\end{equation}
+which is immediately recognizable as the Hamiltonian in \eqref{eq:hamiltonian}.
+
+With this framework, one can encode a number of different optimization and related decision problems.
+\textcite{IsingFormulations} formulates Hamiltonians for a number of different NP problems, including all 21 of Karp's NP-Complete problems \cite{Karp2010}, with the intended aim of utilizing quantum adiabatic optimization.
+
+However, relaxing the constraint that $x_i \in \{0, 1\}$ to $x_i \in [0, 1]$, \textcite{Schuetz_2022} notes that these Hamiltonians can serve as differentiable loss functions for a neural network.
+With this, one can reduce the need for labeled data in the training process of the neural network, in effect \textit{physics-informing} them.
+This might be especially helpful when working with NP problems, as labeled data is often in low supply, or missing entirely, due to the complexity of the problems.
+
+\subsubsection{Traveling Salesman Problem}
+There are multiple ways to design a usable formulation for the Traveling Salesman Problem, however we want to be able to easily verify that the predicted route is a cycle.
+In order to achieve this, we require a bitstring $x_{v,i}$ of size $n^2$, where for a graph $G(V, E)$, $n = |V|$.
+Here, $v$ corresponds to a vertex in the graph, while $i$ corresponds to the placement of the node in the cycle.
+Thus, a viable cycle would be one which includes each vertex exactly once, with exactly one vertex at each place in the cycle.
+
+We can formulate this as a bitstring being feasible if
+\begin{equation}
+    \sum_{v = 1}^n \left( 1 - \sum_{i = 1}^n x_{v,i} \right)^2 + \sum_{i = 1}^n \left( 1 - \sum_{v = 1}^n x_{v,i} \right)^2 = 0.
+\end{equation}
+This would be enough if we assume that the graph is \textit{complete}, i.e.\ if there exists an edge between each vertex pair.
+However, this might not be the case for a given graph.
+Thus, the Hamiltonian associated with guaranteeing a Hamiltonian cycle\footnote{Both are named after Sir William Rowan Hamilton.} is
+\begin{equation}\label{eq:H_A}
+\begin{split}
+    H_{\alpha} &= \sum_{v = 1}^n \left( 1 - \sum_{i = 1}^n x_{v,i} \right)^2 + \sum_{i = 1}^n \left( 1 - \sum_{v = 1}^n x_{v,i} \right)^2 \\
+    &+ \sum_{uv \notin E}\sum_{i = 1}^n x_{u,i}x_{v,i+1},
+\end{split}
+\end{equation}
+with the convention that $x_{v,n+1} = x_{v,0}$.
+
+Extending this to also formulate TSP is now simple, by adding a term $H_{\beta}$ defined as
+\begin{equation}
+    H_{\beta} = \sum_{uv \in E} W_{uv} \sum_{i = 1}^n x_{u,i}x_{v,i+1},
+\end{equation}
+with $W_{uv}$ being the weight associated with the edge $uv$.
+The total Hamiltonian for TSP is then
+\begin{equation}\label{eq:Hamilton_TSP}
+    H = \alpha \cdot H_{\alpha} + \beta \cdot H_{\beta},
+\end{equation}
+with coefficients $\alpha,\beta > 0$.
+As it should always be favourable to add a heavy edge in order to ensure that the solution is a Hamiltonian cycle, we require that $\beta \max_{uv \in E} W_{uv} < \alpha$.
+
+With graphs, it is typically easier to work with the adjacency matrix.
+As the bitstring $x_{v,i}$ only gives the placements of the nodes in a cycle, it is not immediately clear how one is supposed to retrieve the predicted adjacency matrix.
+However, we were already close to this when formulating the Hamiltonian, as there exists an edge between $u$ and $v$ if $x_{u,i}x_{v,i+1} > 0$ for some $i$.
+We therefore define the predicted adjacency matrix $\hat{A} \in \mathbb{R}^{n \times n}$ with
+\begin{equation}\label{eq:A_sum}
+    \hat{a}_{uv} = \sum_{i = 1}^n x_{u,i} x_{v,i+1}. 
+\end{equation}
+
+In order to improve computational performance, we typically want to avoid using explicit for-loops.
+This stems from the fact that we would rather want to use packages designed for numerical linear algebra, which have been optimized for vector-matrix operations over the last decades.
+Therefore, we wish to formulate \eqref{eq:Hamilton_TSP} in terms of matrix operations.
+
+With the bitstring $x_{v,i}$ we associate the matrix $X$ defined as
+\begin{equation}
+X = 
+\begin{bmatrix}
+    \begin{matrix}
+        x_{1,1} & x_{1,2} \\
+        x_{2,1} & x_{2,2}
+    \end{matrix}
+    & \cdots &
+    \begin{matrix}
+        x_{1,n} \\ x_{2,n}
+    \end{matrix} \\
+    \vdots & \ddots & \vdots \\
+    \begin{matrix}
+        x_{n,1} & x_{n,2}
+    \end{matrix}
+    & \hdots & x_{n,n}
+\end{bmatrix}.
+\end{equation}
+Then, \eqref{eq:A_sum} corresponds with the matrix multiplication
+\begin{equation}
+\begin{bmatrix}
+    \begin{matrix}
+        x_{1,1} & x_{1,2} \\
+        x_{2,1} & x_{2,2}
+    \end{matrix}
+    & \cdots &
+    \begin{matrix}
+        x_{1,n} \\ x_{2,n}
+    \end{matrix} \\
+    \vdots & \ddots & \vdots \\
+    \begin{matrix}
+        x_{n,1} & x_{n,2}
+    \end{matrix}
+    & \cdots & x_{n,n}
+\end{bmatrix}
+\begin{bmatrix}
+    \begin{matrix}
+        x_{1,2} & x_{2,2} \\
+        x_{1,3} & x_{2,3}
+    \end{matrix}
+    & \cdots &
+    \begin{matrix}
+        x_{n,2} \\ x_{n,3}
+    \end{matrix} \\
+    \vdots & \ddots & \vdots \\
+    \begin{matrix}
+        x_{1,n} & x_{2,n} \\
+        x_{1,1} & x_{2,1}
+    \end{matrix}
+    & \cdots & \begin{matrix}
+        x_{n,n} \\ x_{n,1}
+    \end{matrix}
+\end{bmatrix}.
+\end{equation}
+The second matrix corresponds with shifting the rows of the transpose of $X$, giving us
+\begin{equation}
+    \hat{A} = XPX^T,
+\end{equation}
+where $P\in\mathbb{R}^{n \times n}$ is the permutation matrix
+\begin{equation}
+    P =
+    \left[
+    \begin{array}{cccc}
+         &\SetToWidest{1}  \\
+         && \ddots \\
+         &&& \SetToWidest{1} \\
+         \SetToWidest{1}
+    \end{array}
+    \right].
+\end{equation}
+
+With $W \in \mathbb{R}^{n \times n}$ being the matrix of weights $W_{uv}$, with zeroes where there is not an edge, we can express the edge related terms of \eqref{eq:Hamilton_TSP} as
+\begin{equation}
+\begin{split}
+    \sum_{uv \notin E}\sum_{i = 1}^n x_{u,i}x_{v,i+1} &= \mathds{1}_n^T \left( T \odot \hat{A} \right) \mathds{1}_n \\
+    \sum_{uv \in E} W_{uv} \sum_{i = 1}^n x_{u,i}x_{v,i+1} &= \mathds{1}_n^T \left( W \odot \hat{A} \right) \mathds{1}_n,
+\end{split}
+\end{equation}
+where $\mathds{1}_n = [1, 1, \ldots, 1] \in \mathbb{R}^{n}$, $T = (t_{uv}) \in \mathbb{R}^{n \times n}$ is the matrix defined with
+\begin{equation}
+    t_{uv} =
+    \begin{cases}
+        1 & \text{if } W_{uv} = 0, \\
+        0 & \text{otherwise},
+    \end{cases}
+\end{equation}
+and $\odot$ is the Hadamard product, denoting elementwise multiplication.
+Note that $\mathds{1}_n^T A \mathds{1}_m$ simply corresponds with summing the terms of an $n \times m$ matrix $A$.
+
+The first terms of \eqref{eq:H_A} are
+\begin{equation}
+\begin{split}
+    \sum_{v = 1}^n \left( 1 - \sum_{i = 1}^n x_{v,i} \right)^2 &= \left( \mathds{1}_n - \mathds{1}_n^T X \right)^2, \\
+    \sum_{i = 1}^n \left( 1 - \sum_{v = 1}^n x_{v,i} \right)^2 &= \left( \mathds{1}_n - X\mathds{1}_n \right)^2,
+\end{split}
+\end{equation}
+giving us all the terms needed to efficiently implement \eqref{eq:Hamilton_TSP}. The final form is thus
+\begin{equation}
+\begin{split}
+    H_{\alpha} =&  \left( \mathds{1}_n - \mathds{1}_n^T X \right)^2 + \left( \mathds{1}_n - X\mathds{1}_n \right)^2 \\
+    &+ \mathds{1}_n^T \left( T \odot \hat{A} \right)\mathds{1}_n, \\
+    H_{\beta} =& \ \mathds{1}_n^T \left( W \odot \hat{A} \right) \mathds{1}_n.
+\end{split}
+\end{equation}
+
+\subsubsection{Minimal Vertex Covering}
+A vertex cover is a coloring of the nodes in a graph, such that each edge is connected to at least one colored node.
+The aim of the Minimal Vertex Covering (MVC) problem is to find a coloring such that the number of colored nodes in minimal.
+
+This can be formulated as an Ising problem using a bitstring $x \in \mathbb{R}^n$, where $x_v = 1$ if node $v$ is colored, and $0$ otherwise.
+We can then enforce the constraint that each edge must be colored through
+\begin{equation}\label{eq:edge_cover}
+    H_{\alpha} = \sum_{uv \in E} (1 - x_u) (1 - x_v),
+\end{equation}
+where we have $H_{\alpha} = 0$ if and only if each edge is colored to at least one colored node.
+The `minimal' aspect can be enforced through appending the term
+\begin{equation}
+    H_{\beta} = \sum_{u \in V} x_u.
+\end{equation}
+The total Hamiltonian is then $H = \alpha \cdot H_{\alpha} + \beta \cdot H_{\beta}$, where choosing $\alpha > \beta$ ensures that the global minima is optimal for the problem.
+
+Letting $\bar{x}_u = 1 - x_u$, we utilize the outer product to get
+\begin{equation}
+    \bar{X} = \bar{x} \bar{x}^T =
+    \begin{bmatrix}
+        \begin{matrix}
+            \bar{x}_1^2 & \bar{x}_1 \bar{x}_2 \\
+            \bar{x}_2 \bar{x}_1 & \bar{x}_2^2
+        \end{matrix}
+         & \cdots & 
+         \begin{matrix}
+            \bar{x}_1 \bar{x}_n \\
+            \bar{x}_2 \bar{x}_n
+         \end{matrix} \\
+        \vdots & \ddots & \vdots \\
+        \begin{matrix}
+            \bar{x}_n \bar{x}_1 & \bar{x}_n \bar{x}_2 
+        \end{matrix}
+        & \cdots & \bar{x}_n^2
+    \end{bmatrix},
+\end{equation}
+such that $\bar{X}_{uv} = (1 - x_u)(1 - x_v)$.
+If the graph is undirected, and contains no parallel edges or self-loops, then with $A$ as the adjacency matrix we have that
+\begin{equation}
+    \mathds{1}_n \left( A \odot \bar{X} \right) \mathds{1}_n = 2 \sum_{uv \in E} (1 - x_u) (1 - x_v),
+\end{equation}
+as both $\hat{X}_{uv}$ and $\hat{X}_{vu}$ represent a single edge.
+
+We can resolve this by noting that this is equivalent with setting $\alpha = 2$ and $\beta = 1$, satisfying the requirement that $\alpha > \beta$.
+Then, $H$ can be written succinctly as
+\begin{equation}
+    H = \mathds{1}_n^T \left( A \odot \bar{X} \right) \mathds{1}_n + \mathds{1}_n^T x.
+\end{equation}
+

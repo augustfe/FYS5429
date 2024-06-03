@@ -1,0 +1,68 @@
+% \documentclass[tikz,border=10pt]{standalone}
+% \usetikzlibrary{fit,backgrounds}
+% \usepackage{ifthen}
+
+% \begin{document}
+\begin{tikzpicture}[>=latex]
+
+% Determine the distance between nodes
+\def\gridsize{1}
+\def\nnodes{3}
+\def\target{\the\numexpr\nnodes-1\relax}
+\def\purple{purple!80}
+\def\teal{teal!35}
+\def\back{purple!35}
+\def\back{black!40}
+
+% Create nodes in a 4x4 grid
+\foreach \x [count=\xi from 1] in {0,...,\nnodes}
+    \foreach \y [count=\yi from 1] in {0,...,\nnodes}
+    {
+        \node[draw, circle, fill=\teal]  (node-\x-\y) at (\x*\gridsize, \y*\gridsize) {};
+    }
+
+% Draw horizontal connections
+\foreach \y in {0,...,\nnodes}
+    \foreach \x [count=\xi from 1] in {0,...,\target}
+    {
+        \ifthenelse{\y=\target \AND \( \x=1 \OR \xi=1 \)}{}
+        {
+            \draw[color=\back] (node-\x-\y) -- (node-\xi-\y);
+        }
+    }
+
+% Draw vertical connections
+\foreach \x in {0,...,\nnodes}
+    \foreach \y [count=\yi from 1] in {0,...,\target}
+    {
+        \ifthenelse{\x=1 \and \( \y=\target \OR \yi=\target \)}{}{
+            \draw[color=\back] (node-\x-\y) -- (node-\x-\yi);
+        }
+    }
+
+% Draw diagonal connections
+\foreach \x [count=\xi from 1] in {0,...,\target}
+    \foreach \y [count=\yi from 1] in {0,...,\target}
+    {
+        % \ifthenelse{\(\xi=0 \OR \xi=2\) \AND \x=1}{}{
+        %     \draw (node-\xi-\y) -- (node-\x-\yi);
+        % }
+        \ifthenelse{\( \xi=1 \AND \y=\target \) \OR \( \x=1 \AND \yi=\target \)}{}{\draw[color=\back] (node-\xi-\y) -- (node-\x-\yi);}
+
+        \ifthenelse{ \( \x=1 \AND \y=\target \) \OR \( \xi=1 \AND \yi=\target \) }{}{\draw[color=\back] (node-\x-\y) -- (node-\xi-\yi);}
+        % 
+        % 
+    }
+
+\foreach \x in {0,...,2}
+    \foreach \y in {\the\numexpr\nnodes-2\relax,...,\nnodes}
+    {
+        \ifthenelse{\x=1 \AND \y=\target}{}{
+        \draw[->, thick, color=\purple] (node-\x-\y) -> (node-1-\target);
+        }
+    }
+
+\node (box) [draw=\purple,rounded corners,fit = (node-0-\nnodes) (node-0-\the\numexpr\nnodes-2) (node-2-\the\numexpr\nnodes-2)] {};
+
+\end{tikzpicture}
+% \end{document}
