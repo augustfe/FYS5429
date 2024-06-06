@@ -5,7 +5,7 @@ import networkx as nx
 import jax.numpy as np
 import flax.linen as nn
 from flax.typing import Array, FrozenDict, Any, PRNGKey
-from jax import jit, value_and_grad
+from jax import jit, value_and_grad, lax
 
 import matplotlib.pyplot as plt
 from typing import Callable
@@ -27,47 +27,39 @@ def post_process(probs: Array) -> Array:
     return probs
 
 
-def hamiltonian_cycle_loss(graph: jraph.GraphsTuple) -> Callable[[Array], Array]:
+def hamiltonian_cycle_loss(
+    graph: jraph.GraphsTuple, use_TSP: bool
+) -> Callable[[Array], Array]:
 
     senders = graph.senders
     receivers = graph.receivers
     edges = graph.edges
 
     def loss_function(probs: Array) -> Array:
-
-        def row_and_col_sum(probs: Array) -> tuple[Array, Array]:
-            H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
-            H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
-            return H_1, H_2
-
-        H_1, H_2 = row_and_col_sum(probs)
-        # H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
-        # H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
-
         A_hat = adjacency(probs)
         invalid = A_hat.at[senders, receivers].set(0.0)
+
+        H_1 = np.sum((1.0 - np.sum(probs, axis=1)) ** 2)
+        H_2 = np.sum((1.0 - np.sum(probs, axis=0)) ** 2)
         H_3 = np.sum(invalid)
 
         H_A = H_1 + H_2 + H_3
-        # H_A = 2 * H_A
 
         weighted = A_hat.at[senders, receivers].get()
 
-        H_B = np.dot(weighted, edges)
-        # H_B = 0
+        H_B = lax.select(use_TSP, np.dot(weighted, edges), 0.0)
 
-        # HC_1, HC_2 = row_and_col_sum(A_hat)
-        # H_C = HC_1 + HC_2
-        H_C = 0
-
-        return H_A + H_B + H_C
+        return H_A + H_B
 
     return loss_function
 
 
 @jit
 def train_step(
-    state: TrainState, graph: jraph.GraphsTuple, dropout_key: PRNGKey
+    state: TrainState,
+    graph: jraph.GraphsTuple,
+    dropout_key: PRNGKey,
+    use_TSP: bool = True,
 ) -> tuple[TrainState, Array, Array]:
     """Perform a single training step.
 
@@ -78,7 +70,7 @@ def train_step(
     Returns:
         TrainState: The updated training state.
     """
-    loss_function = hamiltonian_cycle_loss(graph)
+    loss_function = hamiltonian_cycle_loss(graph, use_TSP=use_TSP)
     dropout_train_key = jax.random.fold_in(key=dropout_key, data=state.step)
 
     def loss_fn(params: FrozenDict[str, Any]) -> tuple[Array, Array]:
@@ -101,20 +93,21 @@ def train_step(
 
 
 def train(
-    nx_graph: nx.Graph,
+    graph: jraph.GraphsTuple,
     net: GCN,
     optimizer: optax.GradientTransformation,
     num_epochs: int = 100,
     random_seed: int = 0,
     tol: float = 0.01,
-    patience: int = 100,
+    patience: int = 1000,
+    warm_up: int = 2500,
+    show_progress: bool = True,
+    use_TSP: bool = True,
 ) -> tuple[TrainState, Array]:
-    graph = graph_to_jraph(nx_graph, pos)
     main_key = jax.random.PRNGKey(random_seed)
     main_key, init_rng, dropout_key = jax.random.split(main_key, num=3)
 
     params = net.init(
-        # {"params": init_rng, "dropout": dropout_key},
         init_rng,
         graph,
         training=True,
@@ -126,45 +119,37 @@ def train(
         tx=optimizer,
     )
 
-    prev_loss = 1.0
     best_loss = np.inf
     count = 0
-
-    gnn_start = time()
 
     pbar = tqdm(range(num_epochs), desc="Training", unit="epoch")
 
     for epoch in pbar:
-        state, loss, probs = train_step(state, graph, dropout_key)
+        state, epoch_loss, probs = train_step(state, graph, dropout_key, use_TSP)
 
-        if epoch % (num_epochs // 10) == 0:
-            continue
-            draw_cycle(nx_graph, pos, probs, rounding=False, save=True, step=epoch)
-
-        if loss < best_loss:
-            best_loss = loss
-            best_bitstring = probs
-
-        if prev_loss - loss < tol:
-            count += 1
-        else:
-            count = 0
-
-        if count > patience:
-            print(f"Early stopping at epoch {epoch}.")
-            break
-
-        prev_loss = loss
         pbar.set_postfix(
             {
-                "loss": f"{loss:.4f}",
+                "loss": f"{epoch_loss:.4f}",
                 "patience": f"{count / patience * 100:.1f}%",
             }
         )
 
-    gnn_end = time()
-    print(f"Training took {gnn_end - gnn_start:.2f} seconds.")
-    print(f"Final loss: {loss:.4f}")
+        if epoch > warm_up:
+            if best_loss - epoch_loss > tol or np.isinf(best_loss):
+                count = 0
+            else:
+                count += 1
+                if count > patience:
+                    if show_progress:
+                        print(f"Early stopping at epoch {epoch}")
+                    pbar.close()
+                    break
+
+        if epoch_loss < best_loss:
+            best_bitstring = probs
+            best_loss = epoch_loss
+
+    print(f"Final loss: {epoch_loss:.4f}")
     print(f"Best loss: {best_loss:.4f}")
 
     return state, best_bitstring
@@ -279,4 +264,4 @@ if __name__ == "__main__":
         )
     )
 
-    draw_cycle(nx_graph, pos, final_bitstring)
+    draw_cycle(nx_graph, pos, final_bitstring, savename="no_TSP")

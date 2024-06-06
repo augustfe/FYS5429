@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 import networkx as nx
-from jax.typing import ArrayLike
-import numpy as onp
 from pathlib import Path
+
+from jax.typing import ArrayLike
+from jax import numpy as np, Array
+import numpy as onp
+
+from graph_utils import adjacency
 
 rcParams = {
     "figure.dpi": 300,
@@ -163,3 +167,57 @@ def mvc_plot_graph(
         plt.savefig(save_dir / f"{savename}.pdf")
     else:
         plt.show()
+
+
+def draw_cycle(
+    nx_graph: nx.Graph,
+    pos: dict[int, Array],
+    bitstring: Array,
+    rounding: bool = True,
+    save_name: str = None,
+    title: str = None,
+):
+    mpl.rcParams.update(rcParams)
+
+    n = nx_graph.number_of_nodes()
+
+    pos_arr = np.stack([pos[i] for i in range(n)])
+    plt.scatter(pos_arr[:, 0], pos_arr[:, 1])
+
+    A_hat = adjacency(bitstring)
+    A_hat = np.clip(A_hat, 0, 1)
+    if rounding:
+        A_hat = (A_hat > 0.5) * 1.0
+
+    for i in range(n):
+        for j in range(n):
+            a = pos_arr[i]
+            b = pos_arr[j]
+
+            if nx_graph.has_edge(i, j):
+                color, style = "black", "-"
+            else:
+                color, style = "red", "--"
+
+            plt.plot(
+                [a[0], b[0]],
+                [a[1], b[1]],
+                color=color,
+                linestyle=style,
+                alpha=A_hat[i, j].item(),
+            )
+
+    if title is not None:
+        plt.title(title)
+
+    plt.axis("off")
+    # Square grid
+    plt.gca().set_aspect("equal", adjustable="box")
+    plt.tight_layout()
+
+    if save_name is not None:
+        plt.savefig(save_dir / f"{save_name}.pdf")
+    else:
+        plt.show()
+
+    plt.close()

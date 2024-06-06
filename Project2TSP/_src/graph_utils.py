@@ -142,3 +142,11 @@ def graph_to_jraph_2(nx_graph: nx.Graph, pos: dict[int, Array]) -> jraph.GraphsT
     )
 
     return graph
+
+
+def adjacency(X: Array) -> Array:
+    "Generate the predicted adjacency matrix"
+
+    FROM = X
+    TO = np.roll(X.T, -1, axis=0)
+    return FROM @ TO
