@@ -4,6 +4,17 @@ It does this through implementing just-in-time compilation (jit), automatic diff
 
 The graphs are generated using \verb|NetworkX| \cite{SciPyProceedings_11}, and translated to \verb|Jraph| \cite{jraph2020github} which allows for sparse graph computations in \verb|JAX|.
 \verb|Jraph| serves as an extension of \verb|FLAX| \cite{flax2020github}, which is a neural network library developed by Google for \verb|JAX|, implementing a number of graph neural network utilities.
-The optimization is performed using the \verb|optax| library \cite{deepmind2020jax}, with Adam as the optimizer.
+The optimization is performed using the \verb|optax| library \cite{deepmind2020jax}, with Adam \cite{kingma2017adam} as the optimizer.
 
+\subsection{Model architecture}
+The neural network consists of $k$ initial graph convolutions, each incorporating their own MLP with $q$ layers.
+The leaky ReLU function is used as the hidden activation function, defined as $\max\{ 0.01x, x \}$.
+The weights of the MLPs are initialized through He initialization \cite{he2015delving}, where the weights are drawn from the normal distribution
+\begin{equation}
+    w_l \sim \mathcal{N}(0, 2/n_l),
+\end{equation}
+where $n_l$ is the number of inputs in the $l^{\text{th}}$ layer.
 
+The cost functions are as described the problem specific Hamiltonians, where the outputs from the neural network are the predicted bitstring $x$.
+The softmax or sigmoid function is used as the output activation in order to ensure valid probabilities.
+The probabilities are then finally rounded to the nearest of $0$ and $1$ in the evaluation stage in order to retrieve the approximate solution.
