@@ -50,7 +50,8 @@ class MLP(nn.Module):
         for size in self.feature_sizes:
             outputs = nn.Dense(
                 features=size,
-                kernel_init=nn.initializers.glorot_normal(),
+                kernel_init=nn.initializers.he_normal(),
+                # kernel_init=nn.initializers.glorot_normal(),
             )(inputs)
             inputs = self.activation(outputs)
 
@@ -101,7 +102,7 @@ class GCN(nn.Module):
 
         for _ in range(self.num_convolutions):
             gn = jraph.GraphConvolution(
-                MLP(feature_sizes, activation=self.activation, training=training),
+                MLP(feature_sizes, activation=self.activation),
                 symmetric_normalization=True,
                 add_self_edges=self.add_self_edges,
             )
@@ -114,7 +115,7 @@ class GCN(nn.Module):
         graph = graph._replace(nodes=dropout(graph.nodes))
 
         gn = jraph.GraphConvolution(
-            nn.Dense(self.number_classes, kernel_init=nn.initializers.glorot_normal()),
+            nn.Dense(self.number_classes, kernel_init=nn.initializers.he_normal()),
             symmetric_normalization=True,
             add_self_edges=self.add_self_edges,
         )

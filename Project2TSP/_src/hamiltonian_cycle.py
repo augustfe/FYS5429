@@ -14,7 +14,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 from gcn import GCN, TrainState
-from graph_utils import generate_graph, graph_to_jraph, graph_to_jraph_2
+from graph_utils import generate_graph, graph_to_jraph as graph_to_jraph
 from matrix_helper import adjacency
 
 
@@ -109,7 +109,7 @@ def train(
     tol: float = 0.01,
     patience: int = 100,
 ) -> tuple[TrainState, Array]:
-    graph = graph_to_jraph_2(nx_graph, pos)
+    graph = graph_to_jraph(nx_graph, pos)
     main_key = jax.random.PRNGKey(random_seed)
     main_key, init_rng, dropout_key = jax.random.split(main_key, num=3)
 
@@ -186,7 +186,7 @@ def draw_cycle(
     A_hat = adjacency(bitstring)
 
     if rounding:
-        loss_func = hamiltonian_cycle_loss(graph_to_jraph_2(nx_graph, pos))
+        loss_func = hamiltonian_cycle_loss(graph_to_jraph(nx_graph, pos))
         A_hat = (A_hat > 0.5) * 1.0
 
         det_loss = loss_func(bitstring)
@@ -237,20 +237,21 @@ if __name__ == "__main__":
     n = nx_graph.number_of_nodes()
 
     n_epochs = 100_000
-    lr = 0.001
+    lr = 0.0001
     optimizer = optax.adam(learning_rate=lr)
     # lr = 0.01
     # optimizer = optax.noisy_sgd(learning_rate=lr, eta=0.4, gamma=0.0)
     # optimizer = optax.lamb(learning_rate=lr)
 
-    hidden_size = 8
+    hidden_size = 64
     net = GCN(
         hidden_size,
         n,
         nn.leaky_relu,
         output_activation=nn.softmax,
-        num_layers=1,
-        dropout_rate=0.0,
+        num_layers=2,
+        dropout_rate=0.3,
+        num_convolutions=2,
     )
 
     state, best_bitstring = train(
@@ -262,7 +263,7 @@ if __name__ == "__main__":
         patience=10000,
     )
 
-    graph = graph_to_jraph_2(nx_graph, pos)
+    graph = graph_to_jraph(nx_graph, pos)
     final_graph = state.apply_fn(state.params, graph, training=False)
     final_bitstring = post_process(final_graph.nodes)
     # final_bitstring = final_graph.nodes
