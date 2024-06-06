@@ -1,0 +1,7 @@
+figure.dpi : 300
+mathtext.fontset : "stix"
+font.family : "STIXGeneral"
+font.style : "normal"
+figure.titlesize : 20
+axes.titlesize : 16
+axes.labelsize : 14
