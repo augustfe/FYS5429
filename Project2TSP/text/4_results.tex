@@ -6,7 +6,7 @@ Firstly, the model is trained on a singular graph.
 This graph is randomly generated through the \verb|networkx| package, consisting of 100 nodes.
 Each edge has a $5\%$ probability of being included in the graph.
 After 653 epochs, the model converges, taking approximately 1 second.
-Note that the models are run in a Jupyter Notebook on an M1 mac, and are therefore not directly comparable with other methods.
+Note that the models are run in a Jupyter Notebook on an M1 mac, and the runtimes are therefore not directly comparable with other methods.
 
 The vertex cover is shown in \autoref{fig:mvc_single_graph_random}, having a size of $61$ coloured nodes, satisfying all constraints.
 Additionally the number of unnecessary nodes are computed, being the number of colored nodes only connected to other colored nodes.
@@ -46,32 +46,70 @@ For this initial graph, the approximate cover consists of $80$ nodes, meaning ou
 
 Finally, the model is trained on two sets of $100$ graphs, with the first being random with probability $5\%$, and the second being $3$-regular.
 The models then predicts a cover for two sets of unseen graphs, being another set of random and regular graphs.
+In \autoref{fig:mvc_train_random} we see that the model is able to consistently predict valid solutions, beating the approximate solution in all cases.
+However, it is not able to generalise well for unseen graphs.
 
-F
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_random_boxes.pdf}
-    \caption{MVC results from training on 100 random graphs, and predicting on a different set of 100 random graphs, with interquartile ranges highlighted. From left to right, the number of violated edges, sizes of the covers, uneccesary nodes and approximate solutions.}
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_train_random.pdf}
+    \caption{MVC results from training on 100 random graphs.}
+    \label{fig:mvc_train_random}
+\end{figure}
+
+In \autoref{fig:mvc_random_to_random} and \autoref{fig:mvc_random_to_regular}, this model is evaluated against respectively random and regular graphs.
+The model is rarely able to predict valid solutions, and those which are valid are worse than the approximations.
+Notably, the model seems to perform better on the $3$-regular graphs than on the random ones.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_random_to_random.pdf}
+    \caption{MVC predictions on 100 random graphs, from training on 100 random graphs.}
     \label{fig:mvc_random_to_random}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_random_to_regular.pdf}
-    \caption{Caption}
+    \caption{MVC predictions on 100 $3$-regular graphs, from training on 100 random graphs.}
     \label{fig:mvc_random_to_regular}
 \end{figure}
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_regular_boxes.pdf}
-    \caption{Caption}
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_train_regular.pdf}
+    \caption{MVC results from training on 100 $3$-regular graphs.}
+    \label{fig:mvc_train_regular}
+\end{figure}
+
+Training the model on $3$-regular graphs instead, as in \autoref{fig:mvc_train_regular}, the model is again able to outperform the approximations.
+It seems to perform slightly worse unseen $3$-regular graphs in \autoref{fig:mvc_regular_to_regular}, and a lot worse on the unseen random graphs in \autoref{fig:mvc_regular_to_random}.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_regular_to_regular.pdf}
+    \caption{MVC predictions on 100 $3$-regular graphs, from training on 100 $3$-regular graphs.}
     \label{fig:mvc_regular_to_regular}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=\linewidth]{Project2TSP/_src/figures/mvc_regular_to_random.pdf}
-    \caption{Caption}
+    \caption{MVC predictions on 100 random graphs, from training on 100 $3$-regular graphs.}
     \label{fig:mvc_regular_to_random}
 \end{figure}
+
+Due to memory constraints, the size of the training set was rather limited, perhaps explaining the poor generalisation.
+However, given the fact that the generated solutions are purely attained through training the models without prior knowledge, the results from the training sets are perhaps a valid measure of the models performance.
+
+\subsection{Hamiltonian cycles}
+Although the objectives of finding a Hamiltonian cycle in a graph and determining the route of a traveling salesman seem similar, the problems are in practice much less related.
+When looking for a Hamiltonian cycle, one typically starts with a sparser graph.
+An example of this could be a social graph of who knows who, where the aim is to pass a message around to each person.
+
+On the other hand, TSP typically concerns itself with complete graphs, or nearly so.
+As discussed previously, GCNs are not able to function on complete graphs due to oversmoothing.
+Finding a Hamiltonian cycle in a complete graph is a trivial exercise, simply take an arbitrary ordering of the nodes.
+
+Due to this, the immediate choice of training data was rather limited.
+Because of this and $8 \times 8$ grid of points was chosen, as it is guaranteed to have Hamiltonian cycles while being relatively sparse \cite{OEIS_hamilton}.
