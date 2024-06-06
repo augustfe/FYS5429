@@ -1,15 +1,28 @@
-Graphs serve as one of the most natural ways to express data, ranging from the connections between cities to the social circles of people.
-A graph $G$ is uniquely determined by a set of vertices $V$ and a set of edges $E \subseteq \{ \{ u, v \} : u,v \in V \wedge u \neq v \}$, denoted $G=(V, E)$.
+Graphs serve as one of the most fundamental and natural ways to express relational data.
+In their simplest form, they are made up of a set of vertices $V$, where some vertices are connected to each other from edges in a set $E$.
+This forms a graph $G = (V, E)$.
+With this simple framework, one is able to describe a large number of phenomena, from social circles and road networks to the complex interactions arising in molecules.
 
-A problem arising when connecting graphs with typical neural networks, is that they typically rely on a fixed number of input features per data points.
+The loose structure of a graph poses a problem in connection with typical machine learning methods, as they typically rely on the data being organised in regular arrays.
+Within a graph, two vertices may be connected to a different number of vertices, meaning the data structure is non-euclidean.
+A special class of machine learning methods has therefore been devised, dubbed Graph Neural Networks (GNNs) \cite{GNN_survey}, in order to capture the inherent relations between the data in graphs.
 
-A major factor in the performance of machine learning models is typically the available training data.
-Standard neural networks rely on having a large data set in order to properly predict the behaviour of future data, however with NP problems, this is inherently an issue.
-This is because as there exist no efficient way to solve them, there exists no large bank of optimal solutions, particularly for large problems.
+A major factor in the predictive power of machine learning models, is the size of the dataset which the model was trained on.
+In a lot of domains, the available data is often limited, or expensive to gather.
+Consider for instance experimental data from a wave pool.
+Although the measured data might be too limited to fully capture the behaviour, the governing mechanics are well known.
+In order to capitalise on this, Physics-Informed Neural Networks (PINNs) have been developed \cite{PINNs}, which incorporate the underlying Partial Differential Equations (PDEs).
+They do this through differentiating the network under the same conditions as in the PDE, ensuring that the trained model not only predicts correctly within the training set, but also acts as a surrogate for the true solution elsewhere.
 
-This is a familiar problem within many fields, for instance within the resolution of Partial Differential Equations (PDEs).
-To counteract this, Physics Informed Neural Networks (PINNs) and Scientific Machine Learning (SciML) has been developed.
-These methods aim to incorporate the domain- and problem-specific knowledge directly into the model, in order to reduce or entirely eliminate the need for labeled data.
+Combinatorial optimization problems concern themselves with choosing the optimal selection from a finite set of feasible solutions.
+A famous example of this is the Traveling Salesman Problem (TSP), where the goal is to choose a route between a set of cities, such that the total traveled distance is minimal.
+The complexity of this problem stems from the fact that with $n$ cities, there are $n!$ different ways to visit the cities.
+Because of this, no efficient algorithm has been found which finds the optimal route for a given graph, meaning the available training data is rather limited.
+This is not an issue exclusive to TSP, and is present in a whole range of problems in a class called NP, where there exists a polynomial time algorithm for verifying the correctness of a solution, but not one for finding the solution.
 
-For PDEs, this typically means using the neural network as a surrogate for the solution.
-The cost function then typically consists of differentiating the network in much the same way one would a normal function, punishing it for not following the boundary constraints and the differential equations.
+In order to overcome the lack of data for these problems, the constraints of a problem are encoded in a Hamiltonian, such that a trial solution can be evaluated without apriori knowledge of the optimal solution.
+\textcite{Schuetz_2022} utilized this method for solving the Maximum cut (MaxCut) and Maximum Independent Set (MIS), where each node is assigned a soft probability, providing an approximate solution.
+This Hamiltonian then serves as a differentiable cost function, in effect physics-informing the GNN.
+
+In this report, I will briefly explain the basics of Graph Theory and GNNs, before applying this framework to the Minimal Vertex Cover (MVC) and Traveling Salesman problems.
+

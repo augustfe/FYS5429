@@ -112,4 +112,49 @@ As discussed previously, GCNs are not able to function on complete graphs due to
 Finding a Hamiltonian cycle in a complete graph is a trivial exercise, simply take an arbitrary ordering of the nodes.
 
 Due to this, the immediate choice of training data was rather limited.
-Because of this and $8 \times 8$ grid of points was chosen, as it is guaranteed to have Hamiltonian cycles while being relatively sparse \cite{OEIS_hamilton}.
+Because of this, $2N \times 2N$ grids of points was chosen, as it is guaranteed to have Hamiltonian cycles while being relatively sparse \cite{OEIS_hamilton}.
+
+The models were trained on grids where nodes are connected to their orthogonal neighbours, as well as grids which were connected to their diagonal neighbours as well.
+As the orthogonal grids are the ones described previously, and as they contain Hamiltonian cycles while being subgraphs of the diagonal ones, the diagonal graphs are also guaranteed to contain a Hamiltonian cycle.
+
+The models were trained both with and without the TSP term of \eqref{eq:Hamilton_TSP}, in order to see if it had a meaningful effect.
+The models struggled to converged, and therefore consisted of 1 convolution with an MLP of 32 nodes, before using the softmax function in the final prediction layer.
+After this, the predictions were post processed such that $x_{1,1} = 1$, while $x_{i, 1} = x_{1, i} = 0$ for $i = 2, 3, \ldots, n$, in effect fixing that the first node should be the first in the cycle.
+This should not have a cycle, as it does not matter which node is first.
+
+As we see in \autoref{fig:8x8_chess_tsp} and \autoref{fig:8x8_chess_ham}, the addition of the TSP term does not seem to have had a meaningful effect.
+This was a recurring theme across multiple different graphs, as well as with different model architectures.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/tsp_8_chess_tsp.pdf}
+    \caption{Model trained on $8 \times 8$ diagonal graph, with TSP.}
+    \label{fig:8x8_chess_tsp}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{Project2TSP/_src/figures/tsp_8_chess_ham.pdf}
+    \caption{Model trained on $8 \times 8$ diagonal graph, without TSP.}
+    \label{fig:8x8_chess_ham}
+\end{figure}
+
+As we see, the model was not able to predict a valid tour in any case.
+This is likely to stem from the approach used, as it is attempting to globally predict a route, consisting of $n^2$ variables.
+It seems to be improving different line segments at once, running into an issue when they cannot be extended further.
+This might be due to the fact that the line segments need to be constructed in order, beginning at an index $j$ in the cycle.
+While the start and end of two lines might lie adjacent visually, if the corresponding indices do not match up, they cannot be connected with this method.
+In this way, the model falls into a deep local minima.
+Without major changes to the fundamental framework, I fail to see how this challenge can be overcome.
+
+\textcite{joshi2019efficient} used a method not too unlike the one described here.
+Their method predicts probabilities $x_{u,v}$, denoting the probability that nodes $u$ and $v$ should be connected.
+They overcame the problem of oversmoothing through utilizing the $k$-nearest neighbour subgraph, training their network on a labeled data set.
+As they do not the predicted ordering of the nodes, they decoded the probabilities using beam search in order to obtain a valid cycle.
+The use of a labeled set limited their training to graphs with maximally 100 nodes, generalizing poorly with respect to larger graphs.
+As they note in their paper, the use of heavy post processing might obscure the flaws of the model, which might be akin to what is seen in the models here.
+
+\textcite{FELLEK2024127392} utilized deep reinforcement learning in combination with an adapted Graph Attention Network (GAT) in their proposed Gated Deep Graph Attention Network (G-DGANet).
+In this method, the final tour is also constructed iteratively.
+Their model generalized better for larger graphs, as well as outperforming a number of other machine learning methods.
+

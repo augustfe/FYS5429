@@ -1,0 +1,12 @@
+Graph Convolution Networks seem promising for a number of combinatorial problems, however it seems likely that they would work better in conjunction with more traditional methods.
+Without this, one cannot ensure that the problem constraints are satisfied, meaning the predictions are mostly useless.
+
+Using the Ising model framework seems promising for simpler problems like MVC, as each node only predicts a single value.
+In addition, the effect of the predictions from one node on the loss is only affected by its immediate neighbours.
+With the TSP formulation, each node effects all others, serving as a complicating factors.
+It is then not as simple to learn local behaviour.
+
+The poor result on the Traveling Salesman Problem was not entirely surprising, given the complexity of the problem.
+Tracing its origins back to the 1800s \cite{TSP_history}, a lot of effort has gone into solving it efficiently, with no clear solution up to this point.
+
+
