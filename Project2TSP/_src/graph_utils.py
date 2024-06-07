@@ -1,9 +1,24 @@
 from typing import Optional
 import networkx as nx
 import jax.numpy as np
-from flax.typing import Array
 import jraph
-from matrix_helper import calculate_distances
+from flax.typing import Array
+from jax import jit, vmap
+
+
+@jit
+def distance_between(x: Array, y: Array) -> float:
+    """The Euclidean distance between x and y."""
+    return np.linalg.norm(x - y)
+
+
+@jit
+def calculate_distances(x: Array) -> Array:
+    """The matrix of pairwise distances between the rows of x."""
+    dist_a_to_B = vmap(distance_between, in_axes=(0, None))
+    dist_a_to_B = vmap(dist_a_to_B, in_axes=(None, 0))
+
+    return dist_a_to_B(x, x)
 
 
 def generate_graph(
@@ -79,7 +94,8 @@ def generate_graph(
 def graph_to_jraph(
     nx_graph: nx.Graph, pos: Optional[dict[int, Array]] = None
 ) -> jraph.GraphsTuple:
-    """Convert a NetworkX graph to a jraph.GraphsTuple.
+    """Convert a NetworkX graph to a jraph.GraphsTuple with adjacency
+    as the node features.
 
     Args:
         nx_graph (nx.Graph): The NetworkX graph to convert.
@@ -118,6 +134,16 @@ def graph_to_jraph(
 
 
 def graph_to_jraph_2(nx_graph: nx.Graph, pos: dict[int, Array]) -> jraph.GraphsTuple:
+    """Convert a NetworkX graph to a jraph.GraphsTuple with position as
+    the node features.
+
+    Args:
+        nx_graph (nx.Graph): The NetworkX graph to convert.
+        pos (dict[int, Array]): The positions of the nodes in the graph.
+
+    Returns:
+        jraph.GraphsTuple: The converted jraph.GraphsTuple.
+    """
     n = nx_graph.number_of_nodes()
     e = nx_graph.number_of_edges()
 

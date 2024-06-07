@@ -9,6 +9,14 @@ import optax
 
 
 def vertex_cover_loss(graph: jraph.GraphsTuple) -> Callable[[Array], Array]:
+    """Compute the loss function for the vertex cover problem.
+
+    Args:
+        graph (jraph.GraphsTuple): The graph to compute the loss on.
+
+    Returns:
+        Callable[[Array], Array]: The loss function.
+    """
 
     senders = graph.senders
     receivers = graph.receivers
@@ -70,6 +78,22 @@ def train(
     warm_up: int = 1000,
     show_progress: bool = True,
 ) -> tuple[TrainState, Array]:
+    """Train the GCN on the vertex cover problem.
+
+    Args:
+        graphs (jraph.GraphsTuple): The graphs to train on.
+        net (GCN): The GCN model to train.
+        optimizer (optax.GradientTransformation): The optimizer to use.
+        num_epochs (int, optional): The number of epochs to train for. Defaults to 100.
+        random_seed (int, optional): The random seed to use. Defaults to 0.
+        tol (float, optional): The tolerance for early stopping. Defaults to 0.01.
+        patience (int, optional): The patience for early stopping. Defaults to 100.
+        warm_up (int, optional): The number of epochs before starting early stopping.
+        show_progress (bool, optional): Whether to show the progress bar. Defaults to True.
+
+    Returns:
+        tuple[TrainState, Array]: The trained state and the losses.
+    """
     graph = graphs
     num_graphs = graph.n_node.shape[0]
 

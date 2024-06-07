@@ -24,12 +24,29 @@ def post_process(probs: Array) -> Array:
 def hamiltonian_cycle_loss(
     graph: jraph.GraphsTuple, use_TSP: bool
 ) -> Callable[[Array], Array]:
+    """Compute the loss function for the Hamiltonian cycle problem.
+
+    Args:
+        graph (jraph.GraphsTuple): The graph to compute the loss on.
+        use_TSP (bool): Whether to use the TSP loss function.
+
+    Returns:
+        Callable[[Array], Array]: The loss function.
+    """
 
     senders = graph.senders
     receivers = graph.receivers
     edges = graph.edges
 
     def loss_function(probs: Array) -> Array:
+        """Compute the loss from a set of probabilities.
+
+        Args:
+            probs (Array): The probability bitrstring.
+
+        Returns:
+            Array: The loss.
+        """
         A_hat = adjacency(probs)
         invalid = A_hat.at[senders, receivers].set(0.0)
 
@@ -98,6 +115,23 @@ def train(
     show_progress: bool = True,
     use_TSP: bool = True,
 ) -> tuple[TrainState, Array]:
+    """Train the model.
+
+    Args:
+        graph (jraph.GraphsTuple): The input graph.
+        net (GCN): The model to train.
+        optimizer (optax.GradientTransformation): The optimizer to use.
+        num_epochs (int, optional): The number of training epochs. Defaults to 100.
+        random_seed (int, optional): The PRNG seed. Defaults to 0.
+        tol (float, optional): Tolerance for an improvement. Defaults to 0.01.
+        patience (int, optional): Number of epochs without an improvement to wait. Defaults to 1000.
+        warm_up (int, optional): Number of epochs before starting the early breaking. Defaults to 2500.
+        show_progress (bool, optional): Whether to show the progess bar in training. Defaults to True.
+        use_TSP (bool, optional): Whether to include the TSP loss. Defaults to True.
+
+    Returns:
+        tuple[TrainState, Array]: The trained model and the best bitstring.
+    """
     main_key = jax.random.PRNGKey(random_seed)
     main_key, init_rng, dropout_key = jax.random.split(main_key, num=3)
 

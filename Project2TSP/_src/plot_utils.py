@@ -176,7 +176,17 @@ def draw_cycle(
     rounding: bool = True,
     save_name: str = None,
     title: str = None,
-):
+) -> None:
+    """Draw a cycle on a graph
+
+    Args:
+        nx_graph (nx.Graph): The graph to draw the cycle on
+        pos (dict[int, Array]): The positions of the nodes in the graph
+        bitstring (Array): The bitstring representing the cycle
+        rounding (bool, optional): Whether to round the bitstring. Defaults to True.
+        save_name (str, optional): The name to save the plot as. Defaults to None.
+        title (str, optional): The title of the plot. Defaults to None.
+    """
     mpl.rcParams.update(rcParams)
 
     n = nx_graph.number_of_nodes()
@@ -211,7 +221,6 @@ def draw_cycle(
         plt.title(title)
 
     plt.axis("off")
-    # Square grid
     plt.gca().set_aspect("equal", adjustable="box")
     plt.tight_layout()
 
